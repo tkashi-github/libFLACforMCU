@@ -1,6 +1,5 @@
-/* libFLAC - Free Lossless Audio Codec
- * Copyright (C) 2004-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+/* libFLAC - Free Lossless Audio Codec library
+ * Copyright (C) 2012-2016  Xiph.org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,35 +29,56 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FLAC__PRIVATE__OGG_MAPPING_H
-#define FLAC__PRIVATE__OGG_MAPPING_H
+/* It is assumed that this header will be included after "config.h". */
 
-#include "FLAC/ordinals.h"
+#if HAVE_BSWAP32			/* GCC and Clang */
 
-/** The length of the packet type field in bytes. */
-#define FLAC__OGG_MAPPING_PACKET_TYPE_LENGTH (1u)
+/* GCC prior to 4.8 didn't provide bswap16 on x86_64 */
+#if ! HAVE_BSWAP16
+static inline unsigned short __builtin_bswap16(unsigned short a)
+{
+	return (a<<8)|(a>>8);
+}
+#endif
 
-extern const uint32_t FLAC__OGG_MAPPING_PACKET_TYPE_LEN; /* = 8 bits */
+#define	ENDSWAP_16(x)		(__builtin_bswap16 (x))
+#define	ENDSWAP_32(x)		(__builtin_bswap32 (x))
+#define	ENDSWAP_64(x)		(__builtin_bswap64 (x))
 
-extern const FLAC__byte FLAC__OGG_MAPPING_FIRST_HEADER_PACKET_TYPE; /* = 0x7f */
+#elif defined _MSC_VER		/* Windows */
 
-/** The length of the 'FLAC' magic in bytes. */
-#define FLAC__OGG_MAPPING_MAGIC_LENGTH (4u)
+#include <stdlib.h>
 
-extern const FLAC__byte * const FLAC__OGG_MAPPING_MAGIC; /* = "FLAC" */
+#define	ENDSWAP_16(x)		(_byteswap_ushort (x))
+#define	ENDSWAP_32(x)		(_byteswap_ulong (x))
+#define	ENDSWAP_64(x)		(_byteswap_uint64 (x))
 
-extern const uint32_t FLAC__OGG_MAPPING_VERSION_MAJOR_LEN; /* = 8 bits */
-extern const uint32_t FLAC__OGG_MAPPING_VERSION_MINOR_LEN; /* = 8 bits */
+#elif defined HAVE_BYTESWAP_H		/* Linux */
 
-/** The length of the Ogg FLAC mapping major version number in bytes. */
-#define FLAC__OGG_MAPPING_VERSION_MAJOR_LENGTH (1u)
+#include <byteswap.h>
 
-/** The length of the Ogg FLAC mapping minor version number in bytes. */
-#define FLAC__OGG_MAPPING_VERSION_MINOR_LENGTH (1u)
+#define	ENDSWAP_16(x)		(bswap_16 (x))
+#define	ENDSWAP_32(x)		(bswap_32 (x))
+#define	ENDSWAP_64(x)		(bswap_64 (x))
 
-extern const uint32_t FLAC__OGG_MAPPING_NUM_HEADERS_LEN; /* = 16 bits */
+#else
 
-/** The length of the #-of-header-packets number bytes. */
-#define FLAC__OGG_MAPPING_NUM_HEADERS_LENGTH (2u)
+#define	ENDSWAP_16(x)		((((x) >> 8) & 0xFF) | (((x) & 0xFF) << 8))
+#define	ENDSWAP_32(x)		((((x) >> 24) & 0xFF) | (((x) >> 8) & 0xFF00) | (((x) & 0xFF00) << 8) | (((x) & 0xFF) << 24))
+#define	ENDSWAP_64(x)		((ENDSWAP_32(((x) >> 32) & 0xFFFFFFFF)) | (ENDSWAP_32((x) & 0xFFFFFFFF) << 32))
+
+#endif
+
+
+/* Host to little-endian byte swapping (for MD5 calculation) */
+#if CPU_IS_BIG_ENDIAN
+
+#define H2LE_16(x)		ENDSWAP_16 (x)
+#define H2LE_32(x)		ENDSWAP_32 (x)
+
+#else
+
+#define H2LE_16(x)		(x)
+#define H2LE_32(x)		(x)
 
 #endif
