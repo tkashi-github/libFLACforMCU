@@ -35,10 +35,10 @@
 #endif
 
 #include <math.h>
-#include "share/compat.h"
-#include "FLAC/assert.h"
-#include "FLAC/format.h"
-#include "private/window.h"
+#include "include/compat.h"
+#include "include/assert.h"
+#include "include/format.h"
+#include "include/window.h"
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 

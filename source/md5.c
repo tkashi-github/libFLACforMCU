@@ -1,14 +1,10 @@
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
-
 #include <stdlib.h>		/* for malloc() */
 #include <string.h>		/* for memcpy() */
 
-#include "private/md5.h"
-#include "share/alloc.h"
-#include "share/compat.h"
-#include "share/endswap.h"
+#include "include/md5.h"
+#include "include/alloc.h"
+#include "include/compat.h"
+#include "include/endswap.h"
 
 /*
  * This code implements the MD5 message-digest algorithm.

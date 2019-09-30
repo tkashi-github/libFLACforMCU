@@ -33,7 +33,7 @@
 #ifndef FLAC__PRIVATE__CPU_H
 #define FLAC__PRIVATE__CPU_H
 
-#include "FLAC/ordinals.h"
+#include "include/ordinals.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -151,39 +151,16 @@
 #endif
 
 typedef enum {
-	FLAC__CPUINFO_TYPE_IA32,
-	FLAC__CPUINFO_TYPE_X86_64,
-	FLAC__CPUINFO_TYPE_PPC,
+	FLAC__CPUINFO_TYPE_CM3,
+	FLAC__CPUINFO_TYPE_CM4F,
+	FLAC__CPUINFO_TYPE_CM7,
 	FLAC__CPUINFO_TYPE_UNKNOWN
 } FLAC__CPUInfo_Type;
 
-typedef struct {
-	FLAC__bool intel;
-
-	FLAC__bool cmov;
-	FLAC__bool mmx;
-	FLAC__bool sse;
-	FLAC__bool sse2;
-
-	FLAC__bool sse3;
-	FLAC__bool ssse3;
-	FLAC__bool sse41;
-	FLAC__bool sse42;
-	FLAC__bool avx;
-	FLAC__bool avx2;
-	FLAC__bool fma;
-} FLAC__CPUInfo_x86;
-
-typedef struct {
-	FLAC__bool arch_3_00;
-	FLAC__bool arch_2_07;
-} FLAC__CPUInfo_ppc;
 
 typedef struct {
 	FLAC__bool use_asm;
 	FLAC__CPUInfo_Type type;
-	FLAC__CPUInfo_x86 x86;
-	FLAC__CPUInfo_ppc ppc;
 } FLAC__CPUInfo;
 
 void FLAC__cpu_info(FLAC__CPUInfo *info);

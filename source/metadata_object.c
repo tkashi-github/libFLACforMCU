@@ -30,23 +30,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
-
 #include <stdlib.h>
 #include <string.h>
 
-#include "private/metadata.h"
-#include "private/memory.h"
+#include "include/metadata.h"
+#include "include/memory.h"
 
-#include "FLAC/assert.h"
-#include "share/alloc.h"
-#include "share/compat.h"
+#include "include/assert.h"
+#include "include/alloc.h"
+#include "include/compat.h"
 
 /* Alias the first (in share/alloc.h) to the second (in src/libFLAC/memory.c). */
 #define safe_malloc_mul_2op_ safe_malloc_mul_2op_p
-
 
 /****************************************************************************
  *
@@ -65,14 +60,16 @@
 static FLAC__bool copy_bytes_(FLAC__byte **to, const FLAC__byte *from, uint32_t bytes)
 {
 	FLAC__ASSERT(to != NULL);
-	if (bytes > 0 && from != NULL) {
+	if (bytes > 0 && from != NULL)
+	{
 		FLAC__byte *x;
 		if ((x = safe_malloc_(bytes)) == NULL)
 			return false;
 		memcpy(x, from, bytes);
 		*to = x;
 	}
-	else {
+	else
+	{
 		*to = 0;
 	}
 	return true;
@@ -98,8 +95,9 @@ static FLAC__bool free_copy_bytes_(FLAC__byte **to, const FLAC__byte *from, uint
 /* realloc() failure leaves entry unchanged */
 static FLAC__bool ensure_null_terminated_(FLAC__byte **entry, uint32_t length)
 {
-	FLAC__byte *x = safe_realloc_add_2op_(*entry, length, /*+*/1);
-	if (x != NULL) {
+	FLAC__byte *x = safe_realloc_add_2op_(*entry, length, /*+*/ 1);
+	if (x != NULL)
+	{
 		x[length] = '\0';
 		*entry = x;
 		return true;
@@ -116,7 +114,8 @@ static FLAC__bool copy_cstring_(char **to, const char *from)
 {
 	char *copy = strdup(from);
 	FLAC__ASSERT(to != NULL);
-	if (copy) {
+	if (copy)
+	{
 		free(*to);
 		*to = copy;
 		return true;
@@ -128,14 +127,16 @@ static FLAC__bool copy_cstring_(char **to, const char *from)
 static FLAC__bool copy_vcentry_(FLAC__StreamMetadata_VorbisComment_Entry *to, const FLAC__StreamMetadata_VorbisComment_Entry *from)
 {
 	to->length = from->length;
-	if (from->entry == 0) {
+	if (from->entry == 0)
+	{
 		FLAC__ASSERT(from->length == 0);
 		to->entry = 0;
 	}
-	else {
+	else
+	{
 		FLAC__byte *x;
 		FLAC__ASSERT(from->length > 0);
-		if ((x = safe_malloc_add_2op_(from->length, /*+*/1)) == NULL)
+		if ((x = safe_malloc_add_2op_(from->length, /*+*/ 1)) == NULL)
 			return false;
 		memcpy(x, from->entry, from->length);
 		x[from->length] = '\0';
@@ -147,13 +148,15 @@ static FLAC__bool copy_vcentry_(FLAC__StreamMetadata_VorbisComment_Entry *to, co
 static FLAC__bool copy_track_(FLAC__StreamMetadata_CueSheet_Track *to, const FLAC__StreamMetadata_CueSheet_Track *from)
 {
 	memcpy(to, from, sizeof(FLAC__StreamMetadata_CueSheet_Track));
-	if (from->indices == 0) {
+	if (from->indices == 0)
+	{
 		FLAC__ASSERT(from->num_indices == 0);
 	}
-	else {
+	else
+	{
 		FLAC__StreamMetadata_CueSheet_Index *x;
 		FLAC__ASSERT(from->num_indices > 0);
-		if ((x = safe_malloc_mul_2op_p(from->num_indices, /*times*/sizeof(FLAC__StreamMetadata_CueSheet_Index))) == NULL)
+		if ((x = safe_malloc_mul_2op_p(from->num_indices, /*times*/ sizeof(FLAC__StreamMetadata_CueSheet_Index))) == NULL)
 			return false;
 		memcpy(x, from->indices, from->num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index));
 		to->indices = x;
@@ -175,11 +178,13 @@ static FLAC__StreamMetadata_SeekPoint *seekpoint_array_new_(uint32_t num_points)
 
 	FLAC__ASSERT(num_points > 0);
 
-	object_array = safe_malloc_mul_2op_p(num_points, /*times*/sizeof(FLAC__StreamMetadata_SeekPoint));
+	object_array = safe_malloc_mul_2op_p(num_points, /*times*/ sizeof(FLAC__StreamMetadata_SeekPoint));
 
-	if (object_array != NULL) {
+	if (object_array != NULL)
+	{
 		uint32_t i;
-		for (i = 0; i < num_points; i++) {
+		for (i = 0; i < num_points; i++)
+		{
 			object_array[i].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
 			object_array[i].stream_offset = 0;
 			object_array[i].frame_samples = 0;
@@ -198,7 +203,8 @@ static void vorbiscomment_calculate_length_(FLAC__StreamMetadata *object)
 	object->length = (FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN) / 8;
 	object->length += object->data.vorbis_comment.vendor_string.length;
 	object->length += (FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN) / 8;
-	for (i = 0; i < object->data.vorbis_comment.num_comments; i++) {
+	for (i = 0; i < object->data.vorbis_comment.num_comments; i++)
+	{
 		object->length += (FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8);
 		object->length += object->data.vorbis_comment.comments[i].length;
 	}
@@ -232,11 +238,14 @@ static FLAC__StreamMetadata_VorbisComment_Entry *vorbiscomment_entry_array_copy_
 
 	return_array = vorbiscomment_entry_array_new_(num_comments);
 
-	if (return_array != NULL) {
+	if (return_array != NULL)
+	{
 		uint32_t i;
 
-		for (i = 0; i < num_comments; i++) {
-			if (!copy_vcentry_(return_array+i, object_array+i)) {
+		for (i = 0; i < num_comments; i++)
+		{
+			if (!copy_vcentry_(return_array + i, object_array + i))
+			{
 				vorbiscomment_entry_array_delete_(return_array, num_comments);
 				return 0;
 			}
@@ -258,13 +267,16 @@ static FLAC__bool vorbiscomment_set_entry_(FLAC__StreamMetadata *object, FLAC__S
 
 	save = dest->entry;
 
-	if (src->entry != NULL) {
-		if (copy) {
+	if (src->entry != NULL)
+	{
+		if (copy)
+		{
 			/* do the copy first so that if we fail we leave the dest object untouched */
 			if (!copy_vcentry_(dest, src))
 				return false;
 		}
-		else {
+		else
+		{
 			/* we have to make sure that the string we're taking over is null-terminated */
 
 			/*
@@ -275,12 +287,13 @@ static FLAC__bool vorbiscomment_set_entry_(FLAC__StreamMetadata *object, FLAC__S
 			 * precise, the 'own' flavor would be a separate function with a
 			 * non-const source pointer.  But it's not, so we hack away.
 			 */
-			if (!ensure_null_terminated_((FLAC__byte**)(&src->entry), src->length))
+			if (!ensure_null_terminated_((FLAC__byte **)(&src->entry), src->length))
 				return false;
 			*dest = *src;
 		}
 	}
-	else {
+	else
+	{
 		/* the src is null */
 		*dest = *src;
 	}
@@ -299,7 +312,8 @@ static int vorbiscomment_find_entry_from_(const FLAC__StreamMetadata *object, ui
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
 	FLAC__ASSERT(field_name != NULL);
 
-	for (i = offset; i < object->data.vorbis_comment.num_comments; i++) {
+	for (i = offset; i < object->data.vorbis_comment.num_comments; i++)
+	{
 		if (FLAC__metadata_object_vorbiscomment_entry_matches(object->data.vorbis_comment.comments[i], field_name, field_name_length))
 			return (int)i;
 	}
@@ -313,30 +327,18 @@ static void cuesheet_calculate_length_(FLAC__StreamMetadata *object)
 
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_CUESHEET);
 
-	object->length = (
-		FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN +
-		FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN +
-		FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN +
-		FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN +
-		FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN
-	) / 8;
+	object->length = (FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN +
+					  FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN +
+					  FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN +
+					  FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN +
+					  FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN) /
+					 8;
 
-	object->length += object->data.cue_sheet.num_tracks * (
-		FLAC__STREAM_METADATA_CUESHEET_TRACK_OFFSET_LEN +
-		FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN +
-		FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN +
-		FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN +
-		FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN +
-		FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN +
-		FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN
-	) / 8;
+	object->length += object->data.cue_sheet.num_tracks * (FLAC__STREAM_METADATA_CUESHEET_TRACK_OFFSET_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN) / 8;
 
-	for (i = 0; i < object->data.cue_sheet.num_tracks; i++) {
-		object->length += object->data.cue_sheet.tracks[i].num_indices * (
-			FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN +
-			FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN +
-			FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN
-		) / 8;
+	for (i = 0; i < object->data.cue_sheet.num_tracks; i++)
+	{
+		object->length += object->data.cue_sheet.tracks[i].num_indices * (FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN + FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN + FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN) / 8;
 	}
 }
 
@@ -360,8 +362,10 @@ static void cuesheet_track_array_delete_(FLAC__StreamMetadata_CueSheet_Track *ob
 
 	FLAC__ASSERT(object_array != NULL && num_tracks > 0);
 
-	for (i = 0; i < num_tracks; i++) {
-		if (object_array[i].indices != 0) {
+	for (i = 0; i < num_tracks; i++)
+	{
+		if (object_array[i].indices != 0)
+		{
 			FLAC__ASSERT(object_array[i].num_indices > 0);
 			free(object_array[i].indices);
 		}
@@ -379,11 +383,14 @@ static FLAC__StreamMetadata_CueSheet_Track *cuesheet_track_array_copy_(const FLA
 
 	return_array = cuesheet_track_array_new_(num_tracks);
 
-	if (return_array != NULL) {
+	if (return_array != NULL)
+	{
 		uint32_t i;
 
-		for (i = 0; i < num_tracks; i++) {
-			if (!copy_track_(return_array+i, object_array+i)) {
+		for (i = 0; i < num_tracks; i++)
+		{
+			if (!copy_track_(return_array + i, object_array + i))
+			{
 				cuesheet_track_array_delete_(return_array, num_tracks);
 				return 0;
 			}
@@ -406,11 +413,13 @@ static FLAC__bool cuesheet_set_track_(FLAC__StreamMetadata *object, FLAC__Stream
 	save = dest->indices;
 
 	/* do the copy first so that if we fail we leave the object untouched */
-	if (copy) {
+	if (copy)
+	{
 		if (!copy_track_(dest, src))
 			return false;
 	}
-	else {
+	else
+	{
 		*dest = *src;
 	}
 
@@ -419,7 +428,6 @@ static FLAC__bool cuesheet_set_track_(FLAC__StreamMetadata *object, FLAC__Stream
 	cuesheet_calculate_length_(object);
 	return true;
 }
-
 
 /****************************************************************************
  *
@@ -435,58 +443,61 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type
 		return 0;
 
 	object = calloc(1, sizeof(FLAC__StreamMetadata));
-	if (object != NULL) {
+	if (object != NULL)
+	{
 		object->is_last = false;
 		object->type = type;
-		switch(type) {
-			case FLAC__METADATA_TYPE_STREAMINFO:
-				object->length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
-				break;
-			case FLAC__METADATA_TYPE_PADDING:
-				/* calloc() took care of this for us:
+		switch (type)
+		{
+		case FLAC__METADATA_TYPE_STREAMINFO:
+			object->length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
+			break;
+		case FLAC__METADATA_TYPE_PADDING:
+			/* calloc() took care of this for us:
 				object->length = 0;
 				*/
-				break;
-			case FLAC__METADATA_TYPE_APPLICATION:
-				object->length = FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8;
-				/* calloc() took care of this for us:
+			break;
+		case FLAC__METADATA_TYPE_APPLICATION:
+			object->length = FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8;
+			/* calloc() took care of this for us:
 				object->data.application.data = 0;
 				*/
-				break;
-			case FLAC__METADATA_TYPE_SEEKTABLE:
-				/* calloc() took care of this for us:
+			break;
+		case FLAC__METADATA_TYPE_SEEKTABLE:
+			/* calloc() took care of this for us:
 				object->length = 0;
 				object->data.seek_table.num_points = 0;
 				object->data.seek_table.points = 0;
 				*/
-				break;
-			case FLAC__METADATA_TYPE_VORBIS_COMMENT:
-				object->data.vorbis_comment.vendor_string.length = (uint32_t)strlen(FLAC__VENDOR_STRING);
-				if (!copy_bytes_(&object->data.vorbis_comment.vendor_string.entry, (const FLAC__byte*)FLAC__VENDOR_STRING, object->data.vorbis_comment.vendor_string.length+1)) {
-					free(object);
-					return 0;
-				}
-				vorbiscomment_calculate_length_(object);
-				break;
-			case FLAC__METADATA_TYPE_CUESHEET:
-				cuesheet_calculate_length_(object);
-				break;
-			case FLAC__METADATA_TYPE_PICTURE:
-				object->length = (
-					FLAC__STREAM_METADATA_PICTURE_TYPE_LEN +
-					FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN + /* empty mime_type string */
-					FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN + /* empty description string */
-					FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN +
-					FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN +
-					FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN +
-					FLAC__STREAM_METADATA_PICTURE_COLORS_LEN +
-					FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN +
-					0 /* no data */
-				) / 8;
-				object->data.picture.type = FLAC__STREAM_METADATA_PICTURE_TYPE_OTHER;
-				object->data.picture.mime_type = 0;
-				object->data.picture.description = 0;
-				/* calloc() took care of this for us:
+			break;
+		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
+			object->data.vorbis_comment.vendor_string.length = (uint32_t)strlen(FLAC__VENDOR_STRING);
+			if (!copy_bytes_(&object->data.vorbis_comment.vendor_string.entry, (const FLAC__byte *)FLAC__VENDOR_STRING, object->data.vorbis_comment.vendor_string.length + 1))
+			{
+				free(object);
+				return 0;
+			}
+			vorbiscomment_calculate_length_(object);
+			break;
+		case FLAC__METADATA_TYPE_CUESHEET:
+			cuesheet_calculate_length_(object);
+			break;
+		case FLAC__METADATA_TYPE_PICTURE:
+			object->length = (FLAC__STREAM_METADATA_PICTURE_TYPE_LEN +
+							  FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN +   /* empty mime_type string */
+							  FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN + /* empty description string */
+							  FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN +
+							  FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN +
+							  FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN +
+							  FLAC__STREAM_METADATA_PICTURE_COLORS_LEN +
+							  FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN +
+							  0 /* no data */
+							  ) /
+							 8;
+			object->data.picture.type = FLAC__STREAM_METADATA_PICTURE_TYPE_OTHER;
+			object->data.picture.mime_type = 0;
+			object->data.picture.description = 0;
+			/* calloc() took care of this for us:
 				object->data.picture.width = 0;
 				object->data.picture.height = 0;
 				object->data.picture.depth = 0;
@@ -494,23 +505,25 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type
 				object->data.picture.data_length = 0;
 				object->data.picture.data = 0;
 				*/
-				/* now initialize mime_type and description with empty strings to make things easier on the client */
-				if (!copy_cstring_(&object->data.picture.mime_type, "")) {
-					free(object);
-					return 0;
-				}
-				if (!copy_cstring_((char**)(&object->data.picture.description), "")) {
-					free(object->data.picture.mime_type);
-					free(object);
-					return 0;
-				}
-				break;
-			default:
-				/* calloc() took care of this for us:
+			/* now initialize mime_type and description with empty strings to make things easier on the client */
+			if (!copy_cstring_(&object->data.picture.mime_type, ""))
+			{
+				free(object);
+				return 0;
+			}
+			if (!copy_cstring_((char **)(&object->data.picture.description), ""))
+			{
+				free(object->data.picture.mime_type);
+				free(object);
+				return 0;
+			}
+			break;
+		default:
+			/* calloc() took care of this for us:
 				object->length = 0;
 				object->data.unknown.data = 0;
 				*/
-				break;
+			break;
 		}
 	}
 
@@ -523,100 +536,118 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMet
 
 	FLAC__ASSERT(object != NULL);
 
-	if ((to = FLAC__metadata_object_new(object->type)) != NULL) {
+	if ((to = FLAC__metadata_object_new(object->type)) != NULL)
+	{
 		to->is_last = object->is_last;
 		to->type = object->type;
 		to->length = object->length;
-		switch(to->type) {
-			case FLAC__METADATA_TYPE_STREAMINFO:
-				memcpy(&to->data.stream_info, &object->data.stream_info, sizeof(FLAC__StreamMetadata_StreamInfo));
-				break;
-			case FLAC__METADATA_TYPE_PADDING:
-				break;
-			case FLAC__METADATA_TYPE_APPLICATION:
-				if (to->length < FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8) { /* underflow check */
+		switch (to->type)
+		{
+		case FLAC__METADATA_TYPE_STREAMINFO:
+			memcpy(&to->data.stream_info, &object->data.stream_info, sizeof(FLAC__StreamMetadata_StreamInfo));
+			break;
+		case FLAC__METADATA_TYPE_PADDING:
+			break;
+		case FLAC__METADATA_TYPE_APPLICATION:
+			if (to->length < FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8)
+			{ /* underflow check */
+				FLAC__metadata_object_delete(to);
+				return 0;
+			}
+			memcpy(&to->data.application.id, &object->data.application.id, FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8);
+			if (!copy_bytes_(&to->data.application.data, object->data.application.data, object->length - FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8))
+			{
+				FLAC__metadata_object_delete(to);
+				return 0;
+			}
+			break;
+		case FLAC__METADATA_TYPE_SEEKTABLE:
+			to->data.seek_table.num_points = object->data.seek_table.num_points;
+			if (to->data.seek_table.num_points > UINT32_MAX / sizeof(FLAC__StreamMetadata_SeekPoint))
+			{ /* overflow check */
+				FLAC__metadata_object_delete(to);
+				return 0;
+			}
+			if (!copy_bytes_((FLAC__byte **)&to->data.seek_table.points, (FLAC__byte *)object->data.seek_table.points, object->data.seek_table.num_points * sizeof(FLAC__StreamMetadata_SeekPoint)))
+			{
+				FLAC__metadata_object_delete(to);
+				return 0;
+			}
+			break;
+		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
+			if (to->data.vorbis_comment.vendor_string.entry != NULL)
+			{
+				free(to->data.vorbis_comment.vendor_string.entry);
+				to->data.vorbis_comment.vendor_string.entry = 0;
+			}
+			if (!copy_vcentry_(&to->data.vorbis_comment.vendor_string, &object->data.vorbis_comment.vendor_string))
+			{
+				FLAC__metadata_object_delete(to);
+				return 0;
+			}
+			if (object->data.vorbis_comment.num_comments == 0)
+			{
+				to->data.vorbis_comment.comments = 0;
+			}
+			else
+			{
+				to->data.vorbis_comment.comments = vorbiscomment_entry_array_copy_(object->data.vorbis_comment.comments, object->data.vorbis_comment.num_comments);
+				if (to->data.vorbis_comment.comments == NULL)
+				{
+					to->data.vorbis_comment.num_comments = 0;
 					FLAC__metadata_object_delete(to);
 					return 0;
 				}
-				memcpy(&to->data.application.id, &object->data.application.id, FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8);
-				if (!copy_bytes_(&to->data.application.data, object->data.application.data, object->length - FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8)) {
+			}
+			to->data.vorbis_comment.num_comments = object->data.vorbis_comment.num_comments;
+			break;
+		case FLAC__METADATA_TYPE_CUESHEET:
+			memcpy(&to->data.cue_sheet, &object->data.cue_sheet, sizeof(FLAC__StreamMetadata_CueSheet));
+			if (object->data.cue_sheet.num_tracks == 0)
+			{
+				FLAC__ASSERT(object->data.cue_sheet.tracks == NULL);
+			}
+			else
+			{
+				FLAC__ASSERT(object->data.cue_sheet.tracks != 0);
+				to->data.cue_sheet.tracks = cuesheet_track_array_copy_(object->data.cue_sheet.tracks, object->data.cue_sheet.num_tracks);
+				if (to->data.cue_sheet.tracks == NULL)
+				{
 					FLAC__metadata_object_delete(to);
 					return 0;
 				}
-				break;
-			case FLAC__METADATA_TYPE_SEEKTABLE:
-				to->data.seek_table.num_points = object->data.seek_table.num_points;
-				if (to->data.seek_table.num_points > UINT32_MAX / sizeof(FLAC__StreamMetadata_SeekPoint)) { /* overflow check */
-					FLAC__metadata_object_delete(to);
-					return 0;
-				}
-				if (!copy_bytes_((FLAC__byte**)&to->data.seek_table.points, (FLAC__byte*)object->data.seek_table.points, object->data.seek_table.num_points * sizeof(FLAC__StreamMetadata_SeekPoint))) {
-					FLAC__metadata_object_delete(to);
-					return 0;
-				}
-				break;
-			case FLAC__METADATA_TYPE_VORBIS_COMMENT:
-				if (to->data.vorbis_comment.vendor_string.entry != NULL) {
-					free(to->data.vorbis_comment.vendor_string.entry);
-					to->data.vorbis_comment.vendor_string.entry = 0;
-				}
-				if (!copy_vcentry_(&to->data.vorbis_comment.vendor_string, &object->data.vorbis_comment.vendor_string)) {
-					FLAC__metadata_object_delete(to);
-					return 0;
-				}
-				if (object->data.vorbis_comment.num_comments == 0) {
-					to->data.vorbis_comment.comments = 0;
-				}
-				else {
-					to->data.vorbis_comment.comments = vorbiscomment_entry_array_copy_(object->data.vorbis_comment.comments, object->data.vorbis_comment.num_comments);
-					if (to->data.vorbis_comment.comments == NULL) {
-						to->data.vorbis_comment.num_comments = 0;
-						FLAC__metadata_object_delete(to);
-						return 0;
-					}
-				}
-				to->data.vorbis_comment.num_comments = object->data.vorbis_comment.num_comments;
-				break;
-			case FLAC__METADATA_TYPE_CUESHEET:
-				memcpy(&to->data.cue_sheet, &object->data.cue_sheet, sizeof(FLAC__StreamMetadata_CueSheet));
-				if (object->data.cue_sheet.num_tracks == 0) {
-					FLAC__ASSERT(object->data.cue_sheet.tracks == NULL);
-				}
-				else {
-					FLAC__ASSERT(object->data.cue_sheet.tracks != 0);
-					to->data.cue_sheet.tracks = cuesheet_track_array_copy_(object->data.cue_sheet.tracks, object->data.cue_sheet.num_tracks);
-					if (to->data.cue_sheet.tracks == NULL) {
-						FLAC__metadata_object_delete(to);
-						return 0;
-					}
-				}
-				break;
-			case FLAC__METADATA_TYPE_PICTURE:
-				to->data.picture.type = object->data.picture.type;
-				if (!copy_cstring_(&to->data.picture.mime_type, object->data.picture.mime_type)) {
-					FLAC__metadata_object_delete(to);
-					return 0;
-				}
-				if (!copy_cstring_((char**)(&to->data.picture.description), (const char*)object->data.picture.description)) {
-					FLAC__metadata_object_delete(to);
-					return 0;
-				}
-				to->data.picture.width = object->data.picture.width;
-				to->data.picture.height = object->data.picture.height;
-				to->data.picture.depth = object->data.picture.depth;
-				to->data.picture.colors = object->data.picture.colors;
-				to->data.picture.data_length = object->data.picture.data_length;
-				if (!copy_bytes_((&to->data.picture.data), object->data.picture.data, object->data.picture.data_length)) {
-					FLAC__metadata_object_delete(to);
-					return 0;
-				}
-				break;
-			default:
-				if (!copy_bytes_(&to->data.unknown.data, object->data.unknown.data, object->length)) {
-					FLAC__metadata_object_delete(to);
-					return 0;
-				}
-				break;
+			}
+			break;
+		case FLAC__METADATA_TYPE_PICTURE:
+			to->data.picture.type = object->data.picture.type;
+			if (!copy_cstring_(&to->data.picture.mime_type, object->data.picture.mime_type))
+			{
+				FLAC__metadata_object_delete(to);
+				return 0;
+			}
+			if (!copy_cstring_((char **)(&to->data.picture.description), (const char *)object->data.picture.description))
+			{
+				FLAC__metadata_object_delete(to);
+				return 0;
+			}
+			to->data.picture.width = object->data.picture.width;
+			to->data.picture.height = object->data.picture.height;
+			to->data.picture.depth = object->data.picture.depth;
+			to->data.picture.colors = object->data.picture.colors;
+			to->data.picture.data_length = object->data.picture.data_length;
+			if (!copy_bytes_((&to->data.picture.data), object->data.picture.data, object->data.picture.data_length))
+			{
+				FLAC__metadata_object_delete(to);
+				return 0;
+			}
+			break;
+		default:
+			if (!copy_bytes_(&to->data.unknown.data, object->data.unknown.data, object->length))
+			{
+				FLAC__metadata_object_delete(to);
+				return 0;
+			}
+			break;
 		}
 	}
 
@@ -627,62 +658,72 @@ void FLAC__metadata_object_delete_data(FLAC__StreamMetadata *object)
 {
 	FLAC__ASSERT(object != NULL);
 
-	switch(object->type) {
-		case FLAC__METADATA_TYPE_STREAMINFO:
-		case FLAC__METADATA_TYPE_PADDING:
-			break;
-		case FLAC__METADATA_TYPE_APPLICATION:
-			if (object->data.application.data != NULL) {
-				free(object->data.application.data);
-				object->data.application.data = NULL;
-			}
-			break;
-		case FLAC__METADATA_TYPE_SEEKTABLE:
-			if (object->data.seek_table.points != NULL) {
-				free(object->data.seek_table.points);
-				object->data.seek_table.points = NULL;
-			}
-			break;
-		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
-			if (object->data.vorbis_comment.vendor_string.entry != NULL) {
-				free(object->data.vorbis_comment.vendor_string.entry);
-				object->data.vorbis_comment.vendor_string.entry = 0;
-			}
-			if (object->data.vorbis_comment.comments != NULL) {
-				FLAC__ASSERT(object->data.vorbis_comment.num_comments > 0);
-				vorbiscomment_entry_array_delete_(object->data.vorbis_comment.comments, object->data.vorbis_comment.num_comments);
-				object->data.vorbis_comment.comments = NULL;
-				object->data.vorbis_comment.num_comments = 0;
-			}
-			break;
-		case FLAC__METADATA_TYPE_CUESHEET:
-			if (object->data.cue_sheet.tracks != NULL) {
-				FLAC__ASSERT(object->data.cue_sheet.num_tracks > 0);
-				cuesheet_track_array_delete_(object->data.cue_sheet.tracks, object->data.cue_sheet.num_tracks);
-				object->data.cue_sheet.tracks = NULL;
-				object->data.cue_sheet.num_tracks = 0;
-			}
-			break;
-		case FLAC__METADATA_TYPE_PICTURE:
-			if (object->data.picture.mime_type != NULL) {
-				free(object->data.picture.mime_type);
-				object->data.picture.mime_type = NULL;
-			}
-			if (object->data.picture.description != NULL) {
-				free(object->data.picture.description);
-				object->data.picture.description = NULL;
-			}
-			if (object->data.picture.data != NULL) {
-				free(object->data.picture.data);
-				object->data.picture.data = NULL;
-			}
-			break;
-		default:
-			if (object->data.unknown.data != NULL) {
-				free(object->data.unknown.data);
-				object->data.unknown.data = NULL;
-			}
-			break;
+	switch (object->type)
+	{
+	case FLAC__METADATA_TYPE_STREAMINFO:
+	case FLAC__METADATA_TYPE_PADDING:
+		break;
+	case FLAC__METADATA_TYPE_APPLICATION:
+		if (object->data.application.data != NULL)
+		{
+			free(object->data.application.data);
+			object->data.application.data = NULL;
+		}
+		break;
+	case FLAC__METADATA_TYPE_SEEKTABLE:
+		if (object->data.seek_table.points != NULL)
+		{
+			free(object->data.seek_table.points);
+			object->data.seek_table.points = NULL;
+		}
+		break;
+	case FLAC__METADATA_TYPE_VORBIS_COMMENT:
+		if (object->data.vorbis_comment.vendor_string.entry != NULL)
+		{
+			free(object->data.vorbis_comment.vendor_string.entry);
+			object->data.vorbis_comment.vendor_string.entry = 0;
+		}
+		if (object->data.vorbis_comment.comments != NULL)
+		{
+			FLAC__ASSERT(object->data.vorbis_comment.num_comments > 0);
+			vorbiscomment_entry_array_delete_(object->data.vorbis_comment.comments, object->data.vorbis_comment.num_comments);
+			object->data.vorbis_comment.comments = NULL;
+			object->data.vorbis_comment.num_comments = 0;
+		}
+		break;
+	case FLAC__METADATA_TYPE_CUESHEET:
+		if (object->data.cue_sheet.tracks != NULL)
+		{
+			FLAC__ASSERT(object->data.cue_sheet.num_tracks > 0);
+			cuesheet_track_array_delete_(object->data.cue_sheet.tracks, object->data.cue_sheet.num_tracks);
+			object->data.cue_sheet.tracks = NULL;
+			object->data.cue_sheet.num_tracks = 0;
+		}
+		break;
+	case FLAC__METADATA_TYPE_PICTURE:
+		if (object->data.picture.mime_type != NULL)
+		{
+			free(object->data.picture.mime_type);
+			object->data.picture.mime_type = NULL;
+		}
+		if (object->data.picture.description != NULL)
+		{
+			free(object->data.picture.description);
+			object->data.picture.description = NULL;
+		}
+		if (object->data.picture.data != NULL)
+		{
+			free(object->data.picture.data);
+			object->data.picture.data = NULL;
+		}
+		break;
+	default:
+		if (object->data.unknown.data != NULL)
+		{
+			free(object->data.unknown.data);
+			object->data.unknown.data = NULL;
+		}
+		break;
 	}
 }
 
@@ -739,8 +780,10 @@ static FLAC__bool compare_block_data_seektable_(const FLAC__StreamMetadata_SeekT
 	if (block1->num_points != block2->num_points)
 		return false;
 
-	if (block1->points != NULL && block2->points != NULL) {
-		for (i = 0; i < block1->num_points; i++) {
+	if (block1->points != NULL && block2->points != NULL)
+	{
+		for (i = 0; i < block1->num_points; i++)
+		{
 			if (block1->points[i].sample_number != block2->points[i].sample_number)
 				return false;
 			if (block1->points[i].stream_offset != block2->points[i].stream_offset)
@@ -761,7 +804,8 @@ static FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetadata_V
 	if (block1->vendor_string.length != block2->vendor_string.length)
 		return false;
 
-	if (block1->vendor_string.entry != NULL && block2->vendor_string.entry != NULL) {
+	if (block1->vendor_string.entry != NULL && block2->vendor_string.entry != NULL)
+	{
 		if (memcmp(block1->vendor_string.entry, block2->vendor_string.entry, block1->vendor_string.length) != 0)
 			return false;
 	}
@@ -771,8 +815,10 @@ static FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetadata_V
 	if (block1->num_comments != block2->num_comments)
 		return false;
 
-	for (i = 0; i < block1->num_comments; i++) {
-		if (block1->comments[i].entry != NULL && block2->comments[i].entry != NULL) {
+	for (i = 0; i < block1->num_comments; i++)
+	{
+		if (block1->comments[i].entry != NULL && block2->comments[i].entry != NULL)
+		{
 			if (memcmp(block1->comments[i].entry, block2->comments[i].entry, block1->comments[i].length) != 0)
 				return false;
 		}
@@ -798,9 +844,11 @@ static FLAC__bool compare_block_data_cuesheet_(const FLAC__StreamMetadata_CueShe
 	if (block1->num_tracks != block2->num_tracks)
 		return false;
 
-	if (block1->tracks != NULL && block2->tracks != NULL) {
+	if (block1->tracks != NULL && block2->tracks != NULL)
+	{
 		FLAC__ASSERT(block1->num_tracks > 0);
-		for (i = 0; i < block1->num_tracks; i++) {
+		for (i = 0; i < block1->num_tracks; i++)
+		{
 			if (block1->tracks[i].offset != block2->tracks[i].offset)
 				return false;
 			if (block1->tracks[i].number != block2->tracks[i].number)
@@ -813,9 +861,11 @@ static FLAC__bool compare_block_data_cuesheet_(const FLAC__StreamMetadata_CueShe
 				return false;
 			if (block1->tracks[i].num_indices != block2->tracks[i].num_indices)
 				return false;
-			if (block1->tracks[i].indices != NULL && block2->tracks[i].indices != NULL) {
+			if (block1->tracks[i].indices != NULL && block2->tracks[i].indices != NULL)
+			{
 				FLAC__ASSERT(block1->tracks[i].num_indices > 0);
-				for (j = 0; j < block1->tracks[i].num_indices; j++) {
+				for (j = 0; j < block1->tracks[i].num_indices; j++)
+				{
 					if (block1->tracks[i].indices[j].offset != block2->tracks[i].indices[j].offset)
 						return false;
 					if (block1->tracks[i].indices[j].number != block2->tracks[i].indices[j].number)
@@ -870,32 +920,36 @@ FLAC_API FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *b
 	FLAC__ASSERT(block1 != NULL);
 	FLAC__ASSERT(block2 != NULL);
 
-	if (block1->type != block2->type) {
+	if (block1->type != block2->type)
+	{
 		return false;
 	}
-	if (block1->is_last != block2->is_last) {
+	if (block1->is_last != block2->is_last)
+	{
 		return false;
 	}
-	if (block1->length != block2->length) {
+	if (block1->length != block2->length)
+	{
 		return false;
 	}
-	switch(block1->type) {
-		case FLAC__METADATA_TYPE_STREAMINFO:
-			return compare_block_data_streaminfo_(&block1->data.stream_info, &block2->data.stream_info);
-		case FLAC__METADATA_TYPE_PADDING:
-			return true; /* we don't compare the padding guts */
-		case FLAC__METADATA_TYPE_APPLICATION:
-			return compare_block_data_application_(&block1->data.application, &block2->data.application, block1->length);
-		case FLAC__METADATA_TYPE_SEEKTABLE:
-			return compare_block_data_seektable_(&block1->data.seek_table, &block2->data.seek_table);
-		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
-			return compare_block_data_vorbiscomment_(&block1->data.vorbis_comment, &block2->data.vorbis_comment);
-		case FLAC__METADATA_TYPE_CUESHEET:
-			return compare_block_data_cuesheet_(&block1->data.cue_sheet, &block2->data.cue_sheet);
-		case FLAC__METADATA_TYPE_PICTURE:
-			return compare_block_data_picture_(&block1->data.picture, &block2->data.picture);
-		default:
-			return compare_block_data_unknown_(&block1->data.unknown, &block2->data.unknown, block1->length);
+	switch (block1->type)
+	{
+	case FLAC__METADATA_TYPE_STREAMINFO:
+		return compare_block_data_streaminfo_(&block1->data.stream_info, &block2->data.stream_info);
+	case FLAC__METADATA_TYPE_PADDING:
+		return true; /* we don't compare the padding guts */
+	case FLAC__METADATA_TYPE_APPLICATION:
+		return compare_block_data_application_(&block1->data.application, &block2->data.application, block1->length);
+	case FLAC__METADATA_TYPE_SEEKTABLE:
+		return compare_block_data_seektable_(&block1->data.seek_table, &block2->data.seek_table);
+	case FLAC__METADATA_TYPE_VORBIS_COMMENT:
+		return compare_block_data_vorbiscomment_(&block1->data.vorbis_comment, &block2->data.vorbis_comment);
+	case FLAC__METADATA_TYPE_CUESHEET:
+		return compare_block_data_cuesheet_(&block1->data.cue_sheet, &block2->data.cue_sheet);
+	case FLAC__METADATA_TYPE_PICTURE:
+		return compare_block_data_picture_(&block1->data.picture, &block2->data.picture);
+	default:
+		return compare_block_data_unknown_(&block1->data.unknown, &block2->data.unknown, block1->length);
 	}
 }
 
@@ -910,11 +964,13 @@ FLAC_API FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetad
 	save = object->data.application.data;
 
 	/* do the copy first so that if we fail we leave the object untouched */
-	if (copy) {
+	if (copy)
+	{
 		if (!copy_bytes_(&object->data.application.data, data, length))
 			return false;
 	}
-	else {
+	else
+	{
 		object->data.application.data = data;
 	}
 
@@ -929,14 +985,16 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMe
 	FLAC__ASSERT(object != NULL);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
 
-	if (object->data.seek_table.points == 0) {
+	if (object->data.seek_table.points == 0)
+	{
 		FLAC__ASSERT(object->data.seek_table.num_points == 0);
 		if (new_num_points == 0)
 			return true;
 		else if ((object->data.seek_table.points = seekpoint_array_new_(new_num_points)) == 0)
 			return false;
 	}
-	else {
+	else
+	{
 		const size_t old_size = object->data.seek_table.num_points * sizeof(FLAC__StreamMetadata_SeekPoint);
 		const size_t new_size = new_num_points * sizeof(FLAC__StreamMetadata_SeekPoint);
 
@@ -946,7 +1004,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMe
 
 		FLAC__ASSERT(object->data.seek_table.num_points > 0);
 
-		if (new_size == 0) {
+		if (new_size == 0)
+		{
 			free(object->data.seek_table.points);
 			object->data.seek_table.points = 0;
 		}
@@ -954,9 +1013,11 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMe
 			return false;
 
 		/* if growing, set new elements to placeholders */
-		if (new_size > old_size) {
+		if (new_size > old_size)
+		{
 			uint32_t i;
-			for (i = object->data.seek_table.num_points; i < new_num_points; i++) {
+			for (i = object->data.seek_table.num_points; i < new_num_points; i++)
+			{
 				object->data.seek_table.points[i].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
 				object->data.seek_table.points[i].stream_offset = 0;
 				object->data.seek_table.points[i].frame_samples = 0;
@@ -987,12 +1048,12 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_insert_point(FLAC__StreamMet
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
 	FLAC__ASSERT(point_num <= object->data.seek_table.num_points);
 
-	if (!FLAC__metadata_object_seektable_resize_points(object, object->data.seek_table.num_points+1))
+	if (!FLAC__metadata_object_seektable_resize_points(object, object->data.seek_table.num_points + 1))
 		return false;
 
 	/* move all points >= point_num forward one space */
-	for (i = (int)object->data.seek_table.num_points-1; i > (int)point_num; i--)
-		object->data.seek_table.points[i] = object->data.seek_table.points[i-1];
+	for (i = (int)object->data.seek_table.num_points - 1; i > (int)point_num; i--)
+		object->data.seek_table.points[i] = object->data.seek_table.points[i - 1];
 
 	FLAC__metadata_object_seektable_set_point(object, point_num, point);
 	seektable_calculate_length_(object);
@@ -1008,10 +1069,10 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_delete_point(FLAC__StreamMet
 	FLAC__ASSERT(point_num < object->data.seek_table.num_points);
 
 	/* move all points > point_num backward one space */
-	for (i = point_num; i < object->data.seek_table.num_points-1; i++)
-		object->data.seek_table.points[i] = object->data.seek_table.points[i+1];
+	for (i = point_num; i < object->data.seek_table.num_points - 1; i++)
+		object->data.seek_table.points[i] = object->data.seek_table.points[i + 1];
 
-	return FLAC__metadata_object_seektable_resize_points(object, object->data.seek_table.num_points-1);
+	return FLAC__metadata_object_seektable_resize_points(object, object->data.seek_table.num_points - 1);
 }
 
 FLAC_API FLAC__bool FLAC__metadata_object_seektable_is_legal(const FLAC__StreamMetadata *object)
@@ -1059,7 +1120,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_points(FLAC_
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
 	FLAC__ASSERT(sample_numbers != 0 || num == 0);
 
-	if (num > 0) {
+	if (num > 0)
+	{
 		FLAC__StreamMetadata_SeekTable *seek_table = &object->data.seek_table;
 		uint32_t i, j;
 
@@ -1068,7 +1130,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_points(FLAC_
 		if (!FLAC__metadata_object_seektable_resize_points(object, seek_table->num_points + num))
 			return false;
 
-		for (j = 0; j < num; i++, j++) {
+		for (j = 0; j < num; i++, j++)
+		{
 			seek_table->points[i].sample_number = sample_numbers[j];
 			seek_table->points[i].stream_offset = 0;
 			seek_table->points[i].frame_samples = 0;
@@ -1084,7 +1147,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
 	FLAC__ASSERT(total_samples > 0);
 
-	if (num > 0 && total_samples > 0) {
+	if (num > 0 && total_samples > 0)
+	{
 		FLAC__StreamMetadata_SeekTable *seek_table = &object->data.seek_table;
 		uint32_t i, j;
 
@@ -1093,7 +1157,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
 		if (!FLAC__metadata_object_seektable_resize_points(object, seek_table->num_points + num))
 			return false;
 
-		for (j = 0; j < num; i++, j++) {
+		for (j = 0; j < num; i++, j++)
+		{
 			seek_table->points[i].sample_number = total_samples * (FLAC__uint64)j / (FLAC__uint64)num;
 			seek_table->points[i].stream_offset = 0;
 			seek_table->points[i].frame_samples = 0;
@@ -1110,7 +1175,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
 	FLAC__ASSERT(samples > 0);
 	FLAC__ASSERT(total_samples > 0);
 
-	if (samples > 0 && total_samples > 0) {
+	if (samples > 0 && total_samples > 0)
+	{
 		FLAC__StreamMetadata_SeekTable *seek_table = &object->data.seek_table;
 		uint32_t i, j;
 		FLAC__uint64 num, sample;
@@ -1121,7 +1187,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
 			num--;
 
 		/* Put a strict upper bound on the number of allowed seek points. */
-		if (num > 32768) {
+		if (num > 32768)
+		{
 			/* Set the bound and recalculate samples accordingly. */
 			num = 32768;
 			samples = total_samples / num;
@@ -1133,7 +1200,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
 			return false;
 
 		sample = 0;
-		for (j = 0; j < num; i++, j++, sample += samples) {
+		for (j = 0; j < num; i++, j++, sample += samples)
+		{
 			seek_table->points[i].sample_number = sample;
 			seek_table->points[i].stream_offset = 0;
 			seek_table->points[i].frame_samples = 0;
@@ -1167,14 +1235,16 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
 	FLAC__ASSERT(object != NULL);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
 
-	if (object->data.vorbis_comment.comments == NULL) {
+	if (object->data.vorbis_comment.comments == NULL)
+	{
 		FLAC__ASSERT(object->data.vorbis_comment.num_comments == 0);
 		if (new_num_comments == 0)
 			return true;
 		else if ((object->data.vorbis_comment.comments = vorbiscomment_entry_array_new_(new_num_comments)) == NULL)
 			return false;
 	}
-	else {
+	else
+	{
 		const size_t old_size = object->data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry);
 		const size_t new_size = new_num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry);
 
@@ -1185,20 +1255,24 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
 		FLAC__ASSERT(object->data.vorbis_comment.num_comments > 0);
 
 		/* if shrinking, free the truncated entries */
-		if (new_num_comments < object->data.vorbis_comment.num_comments) {
+		if (new_num_comments < object->data.vorbis_comment.num_comments)
+		{
 			uint32_t i;
 			for (i = new_num_comments; i < object->data.vorbis_comment.num_comments; i++)
 				if (object->data.vorbis_comment.comments[i].entry != NULL)
 					free(object->data.vorbis_comment.comments[i].entry);
 		}
 
-		if (new_size == 0) {
+		if (new_size == 0)
+		{
 			free(object->data.vorbis_comment.comments);
 			object->data.vorbis_comment.comments = 0;
 		}
-		else {
+		else
+		{
 			FLAC__StreamMetadata_VorbisComment_Entry *oldptr = object->data.vorbis_comment.comments;
-			if ((object->data.vorbis_comment.comments = realloc(object->data.vorbis_comment.comments, new_size)) == NULL) {
+			if ((object->data.vorbis_comment.comments = realloc(object->data.vorbis_comment.comments, new_size)) == NULL)
+			{
 				vorbiscomment_entry_array_delete_(oldptr, object->data.vorbis_comment.num_comments);
 				object->data.vorbis_comment.num_comments = 0;
 				return false;
@@ -1239,11 +1313,11 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__Str
 
 	vc = &object->data.vorbis_comment;
 
-	if (!FLAC__metadata_object_vorbiscomment_resize_comments(object, vc->num_comments+1))
+	if (!FLAC__metadata_object_vorbiscomment_resize_comments(object, vc->num_comments + 1))
 		return false;
 
 	/* move all comments >= comment_num forward one space */
-	memmove(&vc->comments[comment_num+1], &vc->comments[comment_num], sizeof(FLAC__StreamMetadata_VorbisComment_Entry)*(vc->num_comments-1-comment_num));
+	memmove(&vc->comments[comment_num + 1], &vc->comments[comment_num], sizeof(FLAC__StreamMetadata_VorbisComment_Entry) * (vc->num_comments - 1 - comment_num));
 	vc->comments[comment_num].length = 0;
 	vc->comments[comment_num].entry = 0;
 
@@ -1267,23 +1341,26 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_replace_comment(FLAC__St
 	{
 		int i;
 		size_t field_name_length;
-		const FLAC__byte *eq = (FLAC__byte*)memchr(entry.entry, '=', entry.length);
+		const FLAC__byte *eq = (FLAC__byte *)memchr(entry.entry, '=', entry.length);
 
 		if (eq == NULL)
 			return false; /* double protection */
 
-		field_name_length = eq-entry.entry;
+		field_name_length = eq - entry.entry;
 
 		i = vorbiscomment_find_entry_from_(object, 0, (const char *)entry.entry, field_name_length);
-		if (i >= 0) {
+		if (i >= 0)
+		{
 			uint32_t indx = (uint32_t)i;
 			if (!FLAC__metadata_object_vorbiscomment_set_comment(object, indx, entry, copy))
 				return false;
 			entry = object->data.vorbis_comment.comments[indx];
 			indx++; /* skip over replaced comment */
-			if (all && indx < object->data.vorbis_comment.num_comments) {
+			if (all && indx < object->data.vorbis_comment.num_comments)
+			{
 				i = vorbiscomment_find_entry_from_(object, indx, (const char *)entry.entry, field_name_length);
-				while (i >= 0) {
+				while (i >= 0)
+				{
 					indx = (uint32_t)i;
 					if (!FLAC__metadata_object_vorbiscomment_delete_comment(object, indx))
 						return false;
@@ -1314,11 +1391,11 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__Str
 	free(vc->comments[comment_num].entry);
 
 	/* move all comments > comment_num backward one space */
-	memmove(&vc->comments[comment_num], &vc->comments[comment_num+1], sizeof(FLAC__StreamMetadata_VorbisComment_Entry)*(vc->num_comments-comment_num-1));
-	vc->comments[vc->num_comments-1].length = 0;
-	vc->comments[vc->num_comments-1].entry = 0;
+	memmove(&vc->comments[comment_num], &vc->comments[comment_num + 1], sizeof(FLAC__StreamMetadata_VorbisComment_Entry) * (vc->num_comments - comment_num - 1));
+	vc->comments[vc->num_comments - 1].length = 0;
+	vc->comments[vc->num_comments - 1].entry = 0;
 
-	return FLAC__metadata_object_vorbiscomment_resize_comments(object, vc->num_comments-1);
+	return FLAC__metadata_object_vorbiscomment_resize_comments(object, vc->num_comments - 1);
 }
 
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(FLAC__StreamMetadata_VorbisComment_Entry *entry, const char *field_name, const char *field_value)
@@ -1336,11 +1413,11 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pa
 		const size_t nn = strlen(field_name);
 		const size_t nv = strlen(field_value);
 		entry->length = nn + 1 /*=*/ + nv;
-		if ((entry->entry = safe_malloc_add_4op_(nn, /*+*/1, /*+*/nv, /*+*/1)) == NULL)
+		if ((entry->entry = safe_malloc_add_4op_(nn, /*+*/ 1, /*+*/ nv, /*+*/ 1)) == NULL)
 			return false;
 		memcpy(entry->entry, field_name, nn);
 		entry->entry[nn] = '=';
-		memcpy(entry->entry+nn+1, field_value, nv);
+		memcpy(entry->entry + nn + 1, field_value, nv);
 		entry->entry[entry->length] = '\0';
 	}
 
@@ -1357,20 +1434,21 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair
 		return false;
 
 	{
-		const FLAC__byte *eq = (FLAC__byte*)memchr(entry.entry, '=', entry.length);
-		const size_t nn = eq-entry.entry;
-		const size_t nv = entry.length-nn-1; /* -1 for the '=' */
+		const FLAC__byte *eq = (FLAC__byte *)memchr(entry.entry, '=', entry.length);
+		const size_t nn = eq - entry.entry;
+		const size_t nv = entry.length - nn - 1; /* -1 for the '=' */
 
 		if (eq == NULL)
 			return false; /* double protection */
-		if ((*field_name = safe_malloc_add_2op_(nn, /*+*/1)) == NULL)
+		if ((*field_name = safe_malloc_add_2op_(nn, /*+*/ 1)) == NULL)
 			return false;
-		if ((*field_value = safe_malloc_add_2op_(nv, /*+*/1)) == NULL) {
+		if ((*field_value = safe_malloc_add_2op_(nv, /*+*/ 1)) == NULL)
+		{
 			free(*field_name);
 			return false;
 		}
 		memcpy(*field_name, entry.entry, nn);
-		memcpy(*field_value, entry.entry+nn+1, nv);
+		memcpy(*field_value, entry.entry + nn + 1, nv);
 		(*field_name)[nn] = '\0';
 		(*field_value)[nv] = '\0';
 	}
@@ -1382,8 +1460,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(const FLAC
 {
 	FLAC__ASSERT(entry.entry != NULL && entry.length > 0);
 	{
-		const FLAC__byte *eq = (FLAC__byte*)memchr(entry.entry, '=', entry.length);
-		return (eq != NULL && (uint32_t)(eq-entry.entry) == field_name_length && FLAC__STRNCASECMP(field_name, (const char *)entry.entry, field_name_length) == 0);
+		const FLAC__byte *eq = (FLAC__byte *)memchr(entry.entry, '=', entry.length);
+		return (eq != NULL && (uint32_t)(eq - entry.entry) == field_name_length && FLAC__STRNCASECMP(field_name, (const char *)entry.entry, field_name_length) == 0);
 	}
 }
 
@@ -1402,8 +1480,10 @@ FLAC_API int FLAC__metadata_object_vorbiscomment_remove_entry_matching(FLAC__Str
 	FLAC__ASSERT(object != NULL);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
 
-	for (i = 0; i < object->data.vorbis_comment.num_comments; i++) {
-		if (FLAC__metadata_object_vorbiscomment_entry_matches(object->data.vorbis_comment.comments[i], field_name, field_name_length)) {
+	for (i = 0; i < object->data.vorbis_comment.num_comments; i++)
+	{
+		if (FLAC__metadata_object_vorbiscomment_entry_matches(object->data.vorbis_comment.comments[i], field_name, field_name_length))
+		{
 			if (!FLAC__metadata_object_vorbiscomment_delete_comment(object, i))
 				return -1;
 			else
@@ -1425,14 +1505,16 @@ FLAC_API int FLAC__metadata_object_vorbiscomment_remove_entries_matching(FLAC__S
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
 
 	/* must delete from end to start otherwise it will interfere with our iteration */
-	for (i = (int)object->data.vorbis_comment.num_comments - 1; ok && i >= 0; i--) {
-		if (FLAC__metadata_object_vorbiscomment_entry_matches(object->data.vorbis_comment.comments[i], field_name, field_name_length)) {
+	for (i = (int)object->data.vorbis_comment.num_comments - 1; ok && i >= 0; i--)
+	{
+		if (FLAC__metadata_object_vorbiscomment_entry_matches(object->data.vorbis_comment.comments[i], field_name, field_name_length))
+		{
 			matching++;
 			ok &= FLAC__metadata_object_vorbiscomment_delete_comment(object, (uint32_t)i);
 		}
 	}
 
-	return ok? (int)matching : -1;
+	return ok ? (int)matching : -1;
 }
 
 FLAC_API FLAC__StreamMetadata_CueSheet_Track *FLAC__metadata_object_cuesheet_track_new(void)
@@ -1446,8 +1528,10 @@ FLAC_API FLAC__StreamMetadata_CueSheet_Track *FLAC__metadata_object_cuesheet_tra
 
 	FLAC__ASSERT(object != NULL);
 
-	if ((to = FLAC__metadata_object_cuesheet_track_new()) != NULL) {
-		if (!copy_track_(to, object)) {
+	if ((to = FLAC__metadata_object_cuesheet_track_new()) != NULL)
+	{
+		if (!copy_track_(to, object))
+		{
 			FLAC__metadata_object_cuesheet_track_delete(to);
 			return 0;
 		}
@@ -1460,7 +1544,8 @@ void FLAC__metadata_object_cuesheet_track_delete_data(FLAC__StreamMetadata_CueSh
 {
 	FLAC__ASSERT(object != NULL);
 
-	if (object->indices != NULL) {
+	if (object->indices != NULL)
+	{
 		FLAC__ASSERT(object->num_indices > 0);
 		free(object->indices);
 	}
@@ -1481,14 +1566,16 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_resize_indices(FLAC__St
 
 	track = &object->data.cue_sheet.tracks[track_num];
 
-	if (track->indices == NULL) {
+	if (track->indices == NULL)
+	{
 		FLAC__ASSERT(track->num_indices == 0);
 		if (new_num_indices == 0)
 			return true;
 		else if ((track->indices = cuesheet_track_index_array_new_(new_num_indices)) == NULL)
 			return false;
 	}
-	else {
+	else
+	{
 		const size_t old_size = track->num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index);
 		const size_t new_size = new_num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index);
 
@@ -1498,7 +1585,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_resize_indices(FLAC__St
 
 		FLAC__ASSERT(track->num_indices > 0);
 
-		if (new_size == 0) {
+		if (new_size == 0)
+		{
 			free(track->indices);
 			track->indices = 0;
 		}
@@ -1527,11 +1615,11 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_insert_index(FLAC__Stre
 
 	track = &object->data.cue_sheet.tracks[track_num];
 
-	if (!FLAC__metadata_object_cuesheet_track_resize_indices(object, track_num, track->num_indices+1))
+	if (!FLAC__metadata_object_cuesheet_track_resize_indices(object, track_num, track->num_indices + 1))
 		return false;
 
 	/* move all indices >= index_num forward one space */
-	memmove(&track->indices[index_num+1], &track->indices[index_num], sizeof(FLAC__StreamMetadata_CueSheet_Index)*(track->num_indices-1-index_num));
+	memmove(&track->indices[index_num + 1], &track->indices[index_num], sizeof(FLAC__StreamMetadata_CueSheet_Index) * (track->num_indices - 1 - index_num));
 
 	track->indices[index_num] = indx;
 	cuesheet_calculate_length_(object);
@@ -1557,9 +1645,9 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_delete_index(FLAC__Stre
 	track = &object->data.cue_sheet.tracks[track_num];
 
 	/* move all indices > index_num backward one space */
-	memmove(&track->indices[index_num], &track->indices[index_num+1], sizeof(FLAC__StreamMetadata_CueSheet_Index)*(track->num_indices-index_num-1));
+	memmove(&track->indices[index_num], &track->indices[index_num + 1], sizeof(FLAC__StreamMetadata_CueSheet_Index) * (track->num_indices - index_num - 1));
 
-	FLAC__metadata_object_cuesheet_track_resize_indices(object, track_num, track->num_indices-1);
+	FLAC__metadata_object_cuesheet_track_resize_indices(object, track_num, track->num_indices - 1);
 	cuesheet_calculate_length_(object);
 	return true;
 }
@@ -1569,14 +1657,16 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_resize_tracks(FLAC__StreamMet
 	FLAC__ASSERT(object != NULL);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_CUESHEET);
 
-	if (object->data.cue_sheet.tracks == NULL) {
+	if (object->data.cue_sheet.tracks == NULL)
+	{
 		FLAC__ASSERT(object->data.cue_sheet.num_tracks == 0);
 		if (new_num_tracks == 0)
 			return true;
 		else if ((object->data.cue_sheet.tracks = cuesheet_track_array_new_(new_num_tracks)) == NULL)
 			return false;
 	}
-	else {
+	else
+	{
 		const size_t old_size = object->data.cue_sheet.num_tracks * sizeof(FLAC__StreamMetadata_CueSheet_Track);
 		const size_t new_size = new_num_tracks * sizeof(FLAC__StreamMetadata_CueSheet_Track);
 
@@ -1587,13 +1677,15 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_resize_tracks(FLAC__StreamMet
 		FLAC__ASSERT(object->data.cue_sheet.num_tracks > 0);
 
 		/* if shrinking, free the truncated entries */
-		if (new_num_tracks < object->data.cue_sheet.num_tracks) {
+		if (new_num_tracks < object->data.cue_sheet.num_tracks)
+		{
 			uint32_t i;
 			for (i = new_num_tracks; i < object->data.cue_sheet.num_tracks; i++)
 				free(object->data.cue_sheet.tracks[i].indices);
 		}
 
-		if (new_size == 0) {
+		if (new_size == 0)
+		{
 			free(object->data.cue_sheet.tracks);
 			object->data.cue_sheet.tracks = 0;
 		}
@@ -1629,11 +1721,11 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_insert_track(FLAC__StreamMeta
 
 	cs = &object->data.cue_sheet;
 
-	if (!FLAC__metadata_object_cuesheet_resize_tracks(object, cs->num_tracks+1))
+	if (!FLAC__metadata_object_cuesheet_resize_tracks(object, cs->num_tracks + 1))
 		return false;
 
 	/* move all tracks >= track_num forward one space */
-	memmove(&cs->tracks[track_num+1], &cs->tracks[track_num], sizeof(FLAC__StreamMetadata_CueSheet_Track)*(cs->num_tracks-1-track_num));
+	memmove(&cs->tracks[track_num + 1], &cs->tracks[track_num], sizeof(FLAC__StreamMetadata_CueSheet_Track) * (cs->num_tracks - 1 - track_num));
 	cs->tracks[track_num].num_indices = 0;
 	cs->tracks[track_num].indices = 0;
 
@@ -1661,11 +1753,11 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_delete_track(FLAC__StreamMeta
 	free(cs->tracks[track_num].indices);
 
 	/* move all tracks > track_num backward one space */
-	memmove(&cs->tracks[track_num], &cs->tracks[track_num+1], sizeof(FLAC__StreamMetadata_CueSheet_Track)*(cs->num_tracks-track_num-1));
-	cs->tracks[cs->num_tracks-1].num_indices = 0;
-	cs->tracks[cs->num_tracks-1].indices = 0;
+	memmove(&cs->tracks[track_num], &cs->tracks[track_num + 1], sizeof(FLAC__StreamMetadata_CueSheet_Track) * (cs->num_tracks - track_num - 1));
+	cs->tracks[cs->num_tracks - 1].num_indices = 0;
+	cs->tracks[cs->num_tracks - 1].indices = 0;
 
-	return FLAC__metadata_object_cuesheet_resize_tracks(object, cs->num_tracks-1);
+	return FLAC__metadata_object_cuesheet_resize_tracks(object, cs->num_tracks - 1);
 }
 
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_is_legal(const FLAC__StreamMetadata *object, FLAC__bool check_cd_da_subset, const char **violation)
@@ -1678,7 +1770,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_is_legal(const FLAC__StreamMe
 
 static FLAC__uint64 get_index_01_offset_(const FLAC__StreamMetadata_CueSheet *cs, uint32_t track)
 {
-	if (track >= (cs->num_tracks-1) || cs->tracks[track].num_indices < 1)
+	if (track >= (cs->num_tracks - 1) || cs->tracks[track].num_indices < 1)
 		return 0;
 	else if (cs->tracks[track].indices[0].number == 1)
 		return cs->tracks[track].indices[0].offset + cs->tracks[track].offset + cs->lead_in;
@@ -1693,8 +1785,9 @@ static FLAC__uint64 get_index_01_offset_(const FLAC__StreamMetadata_CueSheet *cs
 static FLAC__uint32 cddb_add_digits_(FLAC__uint32 x)
 {
 	FLAC__uint32 n = 0;
-	while (x) {
-		n += (x%10);
+	while (x)
+	{
+		n += (x % 10);
 		x /= 10;
 	}
 	return n;
@@ -1715,11 +1808,11 @@ FLAC_API FLAC__uint32 FLAC__metadata_object_cuesheet_calculate_cddb_id(const FLA
 
 	{
 		FLAC__uint32 i, length, sum = 0;
-		for (i = 0; i < (cs->num_tracks-1); i++) /* -1 to avoid counting the lead-out */
+		for (i = 0; i < (cs->num_tracks - 1); i++) /* -1 to avoid counting the lead-out */
 			sum += cddb_add_digits_((FLAC__uint32)(get_index_01_offset_(cs, i) / 44100));
-		length = (FLAC__uint32)((cs->tracks[cs->num_tracks-1].offset+cs->lead_in) / 44100) - (FLAC__uint32)(get_index_01_offset_(cs, 0) / 44100);
+		length = (FLAC__uint32)((cs->tracks[cs->num_tracks - 1].offset + cs->lead_in) / 44100) - (FLAC__uint32)(get_index_01_offset_(cs, 0) / 44100);
 
-		return (sum % 0xFF) << 24 | length << 8 | (FLAC__uint32)(cs->num_tracks-1);
+		return (sum % 0xFF) << 24 | length << 8 | (FLAC__uint32)(cs->num_tracks - 1);
 	}
 }
 
@@ -1733,17 +1826,19 @@ FLAC_API FLAC__bool FLAC__metadata_object_picture_set_mime_type(FLAC__StreamMeta
 	FLAC__ASSERT(mime_type != NULL);
 
 	old = object->data.picture.mime_type;
-	old_length = old? strlen(old) : 0;
+	old_length = old ? strlen(old) : 0;
 	new_length = strlen(mime_type);
 
 	/* do the copy first so that if we fail we leave the object untouched */
-	if (copy) {
+	if (copy)
+	{
 		if (new_length >= SIZE_MAX) /* overflow check */
 			return false;
-		if (!copy_bytes_((FLAC__byte**)(&object->data.picture.mime_type), (FLAC__byte*)mime_type, new_length+1))
+		if (!copy_bytes_((FLAC__byte **)(&object->data.picture.mime_type), (FLAC__byte *)mime_type, new_length + 1))
 			return false;
 	}
-	else {
+	else
+	{
 		object->data.picture.mime_type = mime_type;
 	}
 
@@ -1764,17 +1859,19 @@ FLAC_API FLAC__bool FLAC__metadata_object_picture_set_description(FLAC__StreamMe
 	FLAC__ASSERT(description != NULL);
 
 	old = object->data.picture.description;
-	old_length = old? strlen((const char *)old) : 0;
+	old_length = old ? strlen((const char *)old) : 0;
 	new_length = strlen((const char *)description);
 
 	/* do the copy first so that if we fail we leave the object untouched */
-	if (copy) {
+	if (copy)
+	{
 		if (new_length >= SIZE_MAX) /* overflow check */
 			return false;
-		if (!copy_bytes_(&object->data.picture.description, description, new_length+1))
+		if (!copy_bytes_(&object->data.picture.description, description, new_length + 1))
 			return false;
 	}
-	else {
+	else
+	{
 		object->data.picture.description = description;
 	}
 
@@ -1796,11 +1893,13 @@ FLAC_API FLAC__bool FLAC__metadata_object_picture_set_data(FLAC__StreamMetadata 
 	old = object->data.picture.data;
 
 	/* do the copy first so that if we fail we leave the object untouched */
-	if (copy) {
+	if (copy)
+	{
 		if (!copy_bytes_(&object->data.picture.data, data, length))
 			return false;
 	}
-	else {
+	else
+	{
 		object->data.picture.data = data;
 	}
 

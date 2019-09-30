@@ -30,42 +30,30 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
-
 #include <limits.h>
-#include <stdio.h>
-#include <stdlib.h> /* for malloc() */
-#include <string.h> /* for memcpy() */
-#include <sys/types.h> /* for off_t */
-#ifdef _WIN32
-#include <windows.h> /* for GetFileType() */
-#include <io.h> /* for _get_osfhandle() */
-#endif
-#include "share/compat.h"
-#include "FLAC/assert.h"
-#include "FLAC/stream_decoder.h"
-#include "protected/stream_encoder.h"
-#include "private/bitwriter.h"
-#include "private/bitmath.h"
-#include "private/crc.h"
-#include "private/cpu.h"
-#include "private/fixed.h"
-#include "private/format.h"
-#include "private/lpc.h"
-#include "private/md5.h"
-#include "private/memory.h"
-#include "private/macros.h"
+#include "include/compat.h"
+#include "include/assert.h"
+#include "include/stream_decoder.h"
+#include "include/stream_encoder.h"
+#include "include/bitwriter.h"
+#include "include/bitmath.h"
+#include "include/crc.h"
+#include "include/cpu.h"
+#include "include/fixed.h"
+#include "include/format.h"
+#include "include/lpc.h"
+#include "include/md5.h"
+#include "include/memory.h"
+#include "include/macros.h"
 #if FLAC__HAS_OGG
-#include "private/ogg_helper.h"
-#include "private/ogg_mapping.h"
+#include "include/ogg_helper.h"
+#include "include/ogg_mapping.h"
 #endif
-#include "private/stream_encoder.h"
-#include "private/stream_encoder_framing.h"
-#include "private/window.h"
-#include "share/alloc.h"
-#include "share/private.h"
+#include "include/stream_encoder.h"
+#include "include/stream_encoder_framing.h"
+#include "include/window.h"
+#include "include/alloc.h"
+#include "include/private.h"
 
 
 /* Exact Rice codeword length calculation is off by default.  The simple
