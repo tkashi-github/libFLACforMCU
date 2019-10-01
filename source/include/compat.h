@@ -44,6 +44,8 @@
 #error /** Only C11 */
 #endif
 
+#define FLAC_ENV_EMBEDDED
+
 #if defined(FLAC_ENV_EMBEDDED)
 #define USE_MIMICLIB
 #define USE_FAT_FS
@@ -90,14 +92,21 @@ extern "C" {
 #define flac_rename f_rename
 #define flac_stat f_stat
 #define flac_ftello f_tell
+typedef FIL FLAC_FILE;
 #else
 #error "Unkown Filesystem"
 #endif
 
-extern uint32_t flac_fwrite(const void *buf, size_t size, size_t n, FIL *fp);
-extern uint32_t flac_fread(void *buf, size_t size, size_t n, FIL *fp);
+typdef enum{
+    enFlacFopenModeRead,
+    enFlacFopenModeWrite,
+}enLFlacFopenMode_t;
+
+extern _Bool flac_fopen(FLAC_FILE* fp, const TCHAR path[], enLFlacFopenMode_t enMode);
+extern uint32_t flac_fwrite(const void *buf, size_t size, size_t n, FLAC_FILE *fp);
+extern uint32_t flac_fread(void *buf, size_t size, size_t n, FLAC_FILE *fp);
 extern int flac_chmod(const char szFilePath[], int mode);
-extern int flac_fseeko(FIL *fp, int32_t offset, int32_t whence);
+extern int flac_fseeko(FLAC_FILE *fp, int32_t offset, int32_t whence);
 
 
 

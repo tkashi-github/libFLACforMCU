@@ -326,7 +326,7 @@ FLAC_API FLAC__bool FLAC__metadata_get_picture(const char *filename, FLAC__Strea
 
 struct FLAC__Metadata_SimpleIterator
 {
-	FILE *file;
+	FLAC_FILE *file;
 	char *filename, *tempfile_path_prefix;
 	struct flac_stat_s stats;
 	FLAC__bool has_stats;
@@ -423,12 +423,12 @@ static FLAC__bool simple_iterator_prime_input_(FLAC__Metadata_SimpleIterator *it
 
 	FLAC__ASSERT(0 != iterator);
 
-	if (read_only || 0 == (iterator->file = flac_fopen(iterator->filename, "r+b")))
+	if (read_only || (false == flac_fopen(iterator->file, iterator->filename, enFlacFopenModeRead)))
 	{
 		iterator->is_writable = false;
 		if (read_only || errno == EACCES)
 		{
-			if (0 == (iterator->file = flac_fopen(iterator->filename, "rb")))
+			if (false == flac_fopen(iterator->file, iterator->filename, enFlacFopenModeRead))
 			{
 				iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ERROR_OPENING_FILE;
 				return false;
