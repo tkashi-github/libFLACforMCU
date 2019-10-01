@@ -39,145 +39,34 @@
 #ifndef FLAC__SHARE__COMPAT_H
 #define FLAC__SHARE__COMPAT_H
 
-#if defined _WIN32 && !defined __CYGWIN__
-/* where MSVC puts unlink() */
-# include <io.h>
-#else
-# include <unistd.h>
+
+#if __STDC_VERSION__ < 201112L
+#error /** Only C11 */
 #endif
 
-#if defined _MSC_VER || defined __BORLANDC__ || defined __MINGW32__
-#include <sys/types.h> /* for off_t */
-#define FLAC__off_t __int64 /* use this instead of off_t to fix the 2 GB limit */
-#if !defined __MINGW32__
-#define fseeko _fseeki64
-#define ftello _ftelli64
-#else /* MinGW */
-#if !defined(HAVE_FSEEKO)
-#define fseeko fseeko64
-#define ftello ftello64
+#if defined(FLAC_ENV_EMBEDDED)
+#define USE_MIMICLIB
+#define USE_FAT_FS
 #endif
+
+#pragma once
+#ifdef __cplusplus
+extern "C" {
 #endif
-#else
+#include <stdint.h>
+#include <stdbool.h>
+#include <unistd.h>
+
 #define FLAC__off_t off_t
-#endif
-
-#if HAVE_INTTYPES_H
-#define __STDC_FORMAT_MACROS
-#include <inttypes.h>
-#endif
-
-#if defined(_MSC_VER)
-#define strtoll _strtoi64
-#define strtoull _strtoui64
-#endif
-
-#if defined(_MSC_VER) && !defined(__cplusplus)
-#define inline __inline
-#endif
-
-#if defined __INTEL_COMPILER || (defined _MSC_VER && defined _WIN64)
-/* MSVS generates VERY slow 32-bit code with __restrict */
-#define flac_restrict __restrict
-#elif defined __GNUC__
-#define flac_restrict __restrict__
-#else
-#define flac_restrict
-#endif
-
 #define FLAC__U64L(x) x##ULL
-
-#if defined _MSC_VER || defined __MINGW32__
-#define FLAC__STRCASECMP _stricmp
-#define FLAC__STRNCASECMP _strnicmp
-#elif defined __BORLANDC__
-#define FLAC__STRCASECMP stricmp
-#define FLAC__STRNCASECMP strnicmp
-#else
+#include <strings.h>
 #define FLAC__STRCASECMP strcasecmp
 #define FLAC__STRNCASECMP strncasecmp
-#endif
 
-#if defined _MSC_VER || defined __MINGW32__ || defined __EMX__
-#include <io.h> /* for _setmode(), chmod() */
-#include <fcntl.h> /* for _O_BINARY */
-#else
-#include <unistd.h> /* for chown(), unlink() */
-#endif
+#define flac_restrict
 
-#if defined _MSC_VER || defined __BORLANDC__ || defined __MINGW32__
-#if defined __BORLANDC__
-#include <utime.h> /* for utime() */
-#else
-#include <sys/utime.h> /* for utime() */
-#endif
-#else
-#include <sys/types.h> /* some flavors of BSD (like OS X) require this to get time_t */
-#include <utime.h> /* for utime() */
-#endif
-
-#if defined _MSC_VER
-#  if _MSC_VER >= 1800
-#    include <inttypes.h>
-#  elif _MSC_VER >= 1600
-/* Visual Studio 2010 has decent C99 support */
-#    include <stdint.h>
-#    define PRIu64 "llu"
-#    define PRId64 "lld"
-#    define PRIx64 "llx"
-#  else
-#    include <limits.h>
-#    ifndef UINT32_MAX
-#      define UINT32_MAX _UI32_MAX
-#    endif
-#    define PRIu64 "I64u"
-#    define PRId64 "I64d"
-#    define PRIx64 "I64x"
-#  endif
-#endif /* defined _MSC_VER */
-
-#ifdef _WIN32
-/* All char* strings are in UTF-8 format. Added to support Unicode files on Windows */
-
-#include "include/win_utf8_io.h"
-#define flac_printf printf_utf8
-#define flac_fprintf fprintf_utf8
-#define flac_vfprintf vfprintf_utf8
-
-#include "include/windows_unicode_filenames.h"
-#define flac_fopen flac_internal_fopen_utf8
-#define flac_chmod flac_internal_chmod_utf8
-#define flac_utime flac_internal_utime_utf8
-#define flac_unlink flac_internal_unlink_utf8
-#define flac_rename flac_internal_rename_utf8
-#define flac_stat flac_internal_stat64_utf8
-
-#else
-
-#define flac_printf printf
-#define flac_fprintf fprintf
-#define flac_vfprintf vfprintf
-
-#define flac_fopen fopen
-#define flac_chmod chmod
-#define flac_utime utime
-#define flac_unlink unlink
-#define flac_rename rename
-#define flac_stat stat
-
-#endif
-
-#ifdef _WIN32
-#define flac_stat_s __stat64 /* stat struct */
-#define flac_fstat _fstat64
-#else
 #define flac_stat_s stat /* stat struct */
-#define flac_fstat fstat
-#endif
 
-#ifdef ANDROID
-#include <limits.h>
-#endif
 
 #ifndef M_LN2
 #define M_LN2 0.69314718055994530942
@@ -186,18 +75,101 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-/* FLAC needs to compile and work correctly on systems with a normal ISO C99
- * snprintf as well as Microsoft Visual Studio which has an non-standards
- * conformant snprint_s function.
- *
- * This function wraps the MS version to behave more like the ISO version.
- */
+#include "mimiclib.h"
+#define flac_printf mimic_printf
+
 #include <stdarg.h>
-#ifdef __cplusplus
-extern "C" {
+
+
+#if defined(USE_FAT_FS)
+#include "ff.h"
+/*FRESULT f_open (FIL* fp, const TCHAR* path, BYTE mode);*/
+#define flac_fopen f_open
+#define flac_utime f_utime
+#define flac_unlink f_unlink
+#define flac_rename f_rename
+#define flac_stat f_stat
+#define flac_ftello f_tell
+#else
+#error "Unkown Filesystem"
 #endif
-int flac_snprintf(char *str, size_t size, const char *fmt, ...);
-int flac_vsnprintf(char *str, size_t size, const char *fmt, va_list va);
+
+extern uint32_t flac_fwrite(const void *buf, size_t size, size_t n, FIL *fp);
+extern uint32_t flac_fread(void *buf, size_t size, size_t n, FIL *fp);
+extern int flac_chmod(const char szFilePath[], int mode);
+extern int flac_fseeko(FIL *fp, int32_t offset, int32_t whence);
+
+
+
+
+extern void *pvlibSYSMalloc( size_t xWantedSize );
+extern void vlibSYSPortFree( void *pv );
+extern size_t xlibSYSPortGetFreeHeapSize( void );
+#define FLAC__FREE(x) FlacSysFree((uintptr_t)(x), __FUNCTION__, __LINE__)
+#define FLAC_MALLOC(x) FlacSysMalloc((x), __FUNCTION__, __LINE__)
+#define FLAC_CALLOC(x,y) FlacSysCalloc((x),(y), __FUNCTION__, __LINE__)
+#define FLAC_REALLOC(x,y) FlacSysRealloc((x),(y), __FUNCTION__, __LINE__)
+
+
+extern void AddMallocInfo(uintptr_t addr, uint32_t u32size, char *psz, uint32_t u32Line);
+extern void DelMallocInfo(uintptr_t addr);
+extern void DumpMallocInfo(void);
+
+static inline void *FlacSysMalloc(size_t xWantedSize, const char pszFunc[], uint32_t u32Line){
+	
+	void *ptr = pvlibSYSMalloc(xWantedSize);
+	if(ptr != NULL){
+		//AddMallocInfo((uintptr_t)ptr, xWantedSize, pszFunc, u32Line);
+		//flac_printf("[%s (%d)] ptr = 0x%08lX, xWantedSize = %lu\r\n", pszFunc, u32Line, ptr, xWantedSize);
+	}else{
+		flac_printf("[%s (%d)] pvlibSYSMalloc NG (Free = %lu, Wanted = %lu)\r\n", pszFunc, u32Line, xlibSYSPortGetFreeHeapSize(), xWantedSize);
+	}
+	return ptr;
+}
+static inline void FlacSysFree(uintptr_t pv, const char pszFile[], uint32_t u32Line){
+	if(pv != 0){
+		vlibSYSPortFree((void*)pv);
+		//DelMallocInfo(pv);
+		//flac_printf("[%s (%d)] ptr = 0x%08lX\r\n", pszFile, u32Line, pv);
+	}
+}
+
+
+
+static inline void *FlacSysCalloc(uint32_t i, uint32_t j, const char pszFunc[], uint32_t u32Line){
+	void *ptr = FlacSysMalloc(i*j, pszFunc, u32Line);
+	if(ptr != NULL){
+		memset(ptr, 0, i*j);
+	}else{
+		flac_printf("[%s (%d)] pvlibSYSMalloc NG (Free = %lu, Wanted = %lu)\r\n", pszFunc, u32Line, xlibSYSPortGetFreeHeapSize(), i*j);
+	}
+
+	return ptr;
+}
+static inline void *FlacSysRealloc(void *ptrOld, size_t size, const char pszFunc[], uint32_t u32Line){
+	void *ptrNew = FlacSysMalloc(size, pszFunc, u32Line);
+	if(ptrNew != NULL){
+		memcpy(ptrNew, ptrOld, size);
+		FlacSysFree((uintptr_t)ptrOld, pszFunc, u32Line);
+	}
+
+	return ptrNew;
+}
+
+static inline char *flac_strdup(const char szStr[]){
+	char *pret = NULL;
+	if(szStr != NULL){
+		pret = pvlibSYSMalloc(strlen(szStr) + 1);
+		if(pret != NULL){
+			strcpy(pret, szStr);
+		}
+	}
+
+	return pret;
+}
+
+
+
 #ifdef __cplusplus
 };
 #endif
