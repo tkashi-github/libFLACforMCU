@@ -292,7 +292,7 @@ static FLAC__StreamEncoderReadStatus file_read_callback_(const FLAC__StreamEncod
 static FLAC__StreamEncoderSeekStatus file_seek_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
 static FLAC__StreamEncoderTellStatus file_tell_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
 static FLAC__StreamEncoderWriteStatus file_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame, void *client_data);
-static FILE *get_binary_stdout_(void);
+static FLAC_FILE *get_binary_stdout_(void);
 
 
 /***********************************************************************
@@ -365,7 +365,7 @@ typedef struct FLAC__StreamEncoderPrivate {
 	FLAC__StreamEncoderProgressCallback progress_callback;
 	void *client_data;
 	uint32_t first_seekpoint_to_check;
-	FILE *file;                            /* only used when encoding to a file */
+	FLAC_FILE *file;                            /* only used when encoding to a file */
 	FLAC__uint64 bytes_written;
 	FLAC__uint64 samples_written;
 	uint32_t frames_written;
@@ -1315,7 +1315,7 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_ogg_stream(
 
 static FLAC__StreamEncoderInitStatus init_FILE_internal_(
 	FLAC__StreamEncoder *encoder,
-	FILE *file,
+	FLAC_FILE *file,
 	FLAC__StreamEncoderProgressCallback progress_callback,
 	void *client_data,
 	FLAC__bool is_ogg
@@ -1337,7 +1337,7 @@ static FLAC__StreamEncoderInitStatus init_FILE_internal_(
 
 	/*
 	 * To make sure that our file does not go unclosed after an error, we
-	 * must assign the FILE pointer before any further error can occur in
+	 * must assign the FLAC_FILE pointer before any further error can occur in
 	 * this routine.
 	 */
 	if(file == stdout)
@@ -1385,7 +1385,7 @@ static FLAC__StreamEncoderInitStatus init_FILE_internal_(
 
 FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_FILE(
 	FLAC__StreamEncoder *encoder,
-	FILE *file,
+	FLAC_FILE *file,
 	FLAC__StreamEncoderProgressCallback progress_callback,
 	void *client_data
 )
@@ -1395,7 +1395,7 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_FILE(
 
 FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_ogg_FILE(
 	FLAC__StreamEncoder *encoder,
-	FILE *file,
+	FLAC_FILE *file,
 	FLAC__StreamEncoderProgressCallback progress_callback,
 	void *client_data
 )
@@ -1411,14 +1411,14 @@ static FLAC__StreamEncoderInitStatus init_file_internal_(
 	FLAC__bool is_ogg
 )
 {
-	FILE *file;
+	FLAC_FILE *file;
 
 	FLAC__ASSERT(0 != encoder);
 
 	/*
 	 * To make sure that our file does not go unclosed after an error, we
 	 * have to do the same entrance checks here that are later performed
-	 * in FLAC__stream_encoder_init_FILE() before the FILE* is assigned.
+	 * in FLAC__stream_encoder_init_FILE() before the FLAC_FILE* is assigned.
 	 */
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return FLAC__STREAM_ENCODER_INIT_STATUS_ALREADY_INITIALIZED;
@@ -3472,9 +3472,6 @@ FLAC__bool process_subframe_(
 #endif
 					rice_parameter++; /* to account for the signed->uint32_t conversion during rice coding */
 					if(rice_parameter >= rice_parameter_limit) {
-#ifndef NDEBUG
-						fprintf(stderr, "clipping rice_parameter (%u -> %u) @0\n", rice_parameter, rice_parameter_limit - 1);
-#endif
 						rice_parameter = rice_parameter_limit - 1;
 					}
 					_candidate_bits =
@@ -3544,9 +3541,6 @@ FLAC__bool process_subframe_(
 								rice_parameter = (lpc_residual_bits_per_sample > 0.0)? (uint32_t)(lpc_residual_bits_per_sample+0.5) : 0; /* 0.5 is for rounding */
 								rice_parameter++; /* to account for the signed->uint32_t conversion during rice coding */
 								if(rice_parameter >= rice_parameter_limit) {
-#ifndef NDEBUG
-									fprintf(stderr, "clipping rice_parameter (%u -> %u) @1\n", rice_parameter, rice_parameter_limit - 1);
-#endif
 									rice_parameter = rice_parameter_limit - 1;
 								}
 								if(encoder->protected_->do_qlp_coeff_prec_search) {
@@ -3665,11 +3659,9 @@ static void spotcheck_subframe_estimate_(
 	FLAC__bool ret;
 	FLAC__BitWriter *frame = FLAC__bitwriter_new();
 	if(frame == 0) {
-		fprintf(stderr, "EST: can't allocate frame\n");
 		return;
 	}
 	if(!FLAC__bitwriter_init(frame)) {
-		fprintf(stderr, "EST: can't init frame\n");
 		return;
 	}
 	ret = add_subframe_(encoder, blocksize, subframe_bps, subframe, frame);
@@ -3677,7 +3669,8 @@ static void spotcheck_subframe_estimate_(
 	{
 		const uint32_t actual = FLAC__bitwriter_get_input_bits_unconsumed(frame);
 		if(estimate != actual)
-			fprintf(stderr, "EST: bad, frame#%u sub#%%d type=%8s est=%u, actual=%u, delta=%d\n", encoder->private_->current_frame_number, FLAC__SubframeTypeString[subframe->type], estimate, actual, (int)actual-(int)estimate);
+		{
+		}
 	}
 	FLAC__bitwriter_delete(frame);
 }
@@ -4176,9 +4169,6 @@ FLAC__bool set_partitioned_rice_(
 				min_rice_parameter = suggested_rice_parameter - rice_parameter_search_dist;
 			max_rice_parameter = suggested_rice_parameter + rice_parameter_search_dist;
 			if(max_rice_parameter >= rice_parameter_limit) {
-#ifndef NDEBUG
-				fprintf(stderr, "clipping rice_parameter (%u -> %u) @5\n", max_rice_parameter, rice_parameter_limit - 1);
-#endif
 				max_rice_parameter = rice_parameter_limit - 1;
 			}
 		}
@@ -4266,9 +4256,6 @@ FLAC__bool set_partitioned_rice_(
 			}
 #endif
 			if(rice_parameter >= rice_parameter_limit) {
-#ifndef NDEBUG
-				fprintf(stderr, "clipping rice_parameter (%u -> %u) @6\n", rice_parameter, rice_parameter_limit - 1);
-#endif
 				rice_parameter = rice_parameter_limit - 1;
 			}
 
@@ -4281,9 +4268,6 @@ FLAC__bool set_partitioned_rice_(
 					min_rice_parameter = rice_parameter - rice_parameter_search_dist;
 				max_rice_parameter = rice_parameter + rice_parameter_search_dist;
 				if(max_rice_parameter >= rice_parameter_limit) {
-#ifndef NDEBUG
-					fprintf(stderr, "clipping rice_parameter (%u -> %u) @7\n", max_rice_parameter, rice_parameter_limit - 1);
-#endif
 					max_rice_parameter = rice_parameter_limit - 1;
 				}
 			}
@@ -4505,7 +4489,7 @@ FLAC__StreamEncoderTellStatus file_tell_callback_(const FLAC__StreamEncoder *enc
 }
 
 #ifdef FLAC__VALGRIND_TESTING
-static size_t local__fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
+static size_t local__fwrite(const void *ptr, size_t size, size_t nmemb, FLAC_FILE *stream)
 {
 	size_t ret = fwrite(ptr, size, nmemb, stream);
 	if(!ferror(stream))
@@ -4550,7 +4534,7 @@ FLAC__StreamEncoderWriteStatus file_write_callback_(const FLAC__StreamEncoder *e
 /*
  * This will forcibly set stdout to binary mode (for OSes that require it)
  */
-FILE *get_binary_stdout_(void)
+FLAC_FILE *get_binary_stdout_(void)
 {
 	/* if something breaks here it is probably due to the presence or
 	 * absence of an underscore before the identifiers 'setmode',

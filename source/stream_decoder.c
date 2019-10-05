@@ -72,7 +72,7 @@ static const FLAC__byte ID3V2_TAG_[3] = {'I', 'D', '3'};
  ***********************************************************************/
 
 static void set_defaults_(FLAC__StreamDecoder *decoder);
-static FILE *get_binary_stdin_(void);
+static FLAC_FILE *get_binary_stdin_(void);
 static FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, uint32_t size, uint32_t channels);
 static FLAC__bool has_id_filtered_(FLAC__StreamDecoder *decoder, FLAC__byte *id);
 static FLAC__bool find_metadata_(FLAC__StreamDecoder *decoder);
@@ -134,7 +134,7 @@ typedef struct FLAC__StreamDecoderPrivate
 	/* for use when the signal is <= 16 bits-per-sample, or <= 15 bits-per-sample on a side channel (which requires 1 extra bit): */
 	void (*local_lpc_restore_signal_16bit)(const FLAC__int32 residual[], uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 data[]);
 	void *client_data;
-	FILE *file; /* only used if FLAC__stream_decoder_init_file()/FLAC__stream_decoder_init_file() called, else NULL */
+	FLAC_FILE *file; /* only used if FLAC__stream_decoder_init_file()/FLAC__stream_decoder_init_file() called, else NULL */
 	FLAC__BitReader *input;
 	FLAC__int32 *output[FLAC__MAX_CHANNELS];
 	FLAC__int32 *residual[FLAC__MAX_CHANNELS]; /* WATCHOUT: these are the aligned pointers; the real pointers that should be free()'d are residual_unaligned[] below */
@@ -499,7 +499,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_ogg_stream(
 
 static FLAC__StreamDecoderInitStatus init_FILE_internal_(
 	FLAC__StreamDecoder *decoder,
-	FILE *file,
+	FLAC_FILE *file,
 	FLAC__StreamDecoderWriteCallback write_callback,
 	FLAC__StreamDecoderMetadataCallback metadata_callback,
 	FLAC__StreamDecoderErrorCallback error_callback,
@@ -517,7 +517,7 @@ static FLAC__StreamDecoderInitStatus init_FILE_internal_(
 
 	/*
 	 * To make sure that our file does not go unclosed after an error, we
-	 * must assign the FILE pointer before any further error can occur in
+	 * must assign the FLAC_FILE pointer before any further error can occur in
 	 * this routine.
 	 */
 	if (file == stdin)
@@ -541,7 +541,7 @@ static FLAC__StreamDecoderInitStatus init_FILE_internal_(
 
 FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_FILE(
 	FLAC__StreamDecoder *decoder,
-	FILE *file,
+	FLAC_FILE *file,
 	FLAC__StreamDecoderWriteCallback write_callback,
 	FLAC__StreamDecoderMetadataCallback metadata_callback,
 	FLAC__StreamDecoderErrorCallback error_callback,
@@ -552,7 +552,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_FILE(
 
 FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_ogg_FILE(
 	FLAC__StreamDecoder *decoder,
-	FILE *file,
+	FLAC_FILE *file,
 	FLAC__StreamDecoderWriteCallback write_callback,
 	FLAC__StreamDecoderMetadataCallback metadata_callback,
 	FLAC__StreamDecoderErrorCallback error_callback,
@@ -570,14 +570,14 @@ static FLAC__StreamDecoderInitStatus init_file_internal_(
 	void *client_data,
 	FLAC__bool is_ogg)
 {
-	FILE *file;
+	FLAC_FILE *file;
 
 	FLAC__ASSERT(0 != decoder);
 
 	/*
 	 * To make sure that our file does not go unclosed after an error, we
 	 * have to do the same entrance checks here that are later performed
-	 * in FLAC__stream_decoder_init_FILE() before the FILE* is assigned.
+	 * in FLAC__stream_decoder_init_FILE() before the FLAC_FILE* is assigned.
 	 */
 	if (decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
 		return decoder->protected_->initstate = FLAC__STREAM_DECODER_INIT_STATUS_ALREADY_INITIALIZED;
@@ -1254,7 +1254,7 @@ void set_defaults_(FLAC__StreamDecoder *decoder)
 /*
  * This will forcibly set stdin to binary mode (for OSes that require it)
  */
-FILE *get_binary_stdin_(void)
+FLAC_FILE *get_binary_stdin_(void)
 {
 	/* if something breaks here it is probably due to the presence or
 	 * absence of an underscore before the identifiers 'setmode',

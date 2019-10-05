@@ -33,7 +33,7 @@
 #ifndef FLAC__STREAM_DECODER_H
 #define FLAC__STREAM_DECODER_H
 
-#include <stdio.h> /* for FILE */
+#include "include/compat.h"
 #include "export.h"
 #include "format.h"
 
@@ -65,7 +65,7 @@ extern "C" {
  * handling metadata and errors.  If the client also supplies seek-related
  * callback, the decoder function for sample-accurate seeking within the
  * FLAC input is also available.  When decoding from a file, the client
- * needs only supply a filename or open \c FILE* and write/metadata/error
+ * needs only supply a filename or open \c FLAC_FILE* and write/metadata/error
  * callbacks; the rest of the callbacks are supplied internally.  For more
  * info see the \link flac_stream_decoder stream decoder \endlink module.
  */
@@ -114,7 +114,7 @@ extern "C" {
  *
  * For decoding directly from a file, use FLAC__stream_decoder_init_FILE()
  * or FLAC__stream_decoder_init_file().  Then you must only supply an open
- * \c FILE* or filename and fewer callbacks; the decoder will handle
+ * \c FLAC_FILE* or filename and fewer callbacks; the decoder will handle
  * the other callbacks internally.
  *
  * There are three similarly-named init functions for decoding from Ogg
@@ -480,7 +480,7 @@ typedef struct {
  * \code
  * FLAC__StreamDecoderReadStatus read_cb(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
  * {
- *   FILE *file = ((MyClientData*)client_data)->file;
+ *   FLAC_FILE *file = ((MyClientData*)client_data)->file;
  *   if(*bytes > 0) {
  *     *bytes = fread(buffer, sizeof(FLAC__byte), *bytes, file);
  *     if(ferror(file))
@@ -528,7 +528,7 @@ typedef FLAC__StreamDecoderReadStatus (*FLAC__StreamDecoderReadCallback)(const F
  * \code
  * FLAC__StreamDecoderSeekStatus seek_cb(const FLAC__StreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data)
  * {
- *   FILE *file = ((MyClientData*)client_data)->file;
+ *   FLAC_FILE *file = ((MyClientData*)client_data)->file;
  *   if(file == stdin)
  *     return FLAC__STREAM_DECODER_SEEK_STATUS_UNSUPPORTED;
  *   else if(fseeko(file, (off_t)absolute_byte_offset, SEEK_SET) < 0)
@@ -563,7 +563,7 @@ typedef FLAC__StreamDecoderSeekStatus (*FLAC__StreamDecoderSeekCallback)(const F
  * \code
  * FLAC__StreamDecoderTellStatus tell_cb(const FLAC__StreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
  * {
- *   FILE *file = ((MyClientData*)client_data)->file;
+ *   FLAC_FILE *file = ((MyClientData*)client_data)->file;
  *   off_t pos;
  *   if(file == stdin)
  *     return FLAC__STREAM_DECODER_TELL_STATUS_UNSUPPORTED;
@@ -600,7 +600,7 @@ typedef FLAC__StreamDecoderTellStatus (*FLAC__StreamDecoderTellCallback)(const F
  * \code
  * FLAC__StreamDecoderLengthStatus length_cb(const FLAC__StreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data)
  * {
- *   FILE *file = ((MyClientData*)client_data)->file;
+ *   FLAC_FILE *file = ((MyClientData*)client_data)->file;
  *   struct stat filestats;
  *
  *   if(file == stdin)
@@ -638,7 +638,7 @@ typedef FLAC__StreamDecoderLengthStatus (*FLAC__StreamDecoderLengthCallback)(con
  * FLAC__bool eof_cb(const FLAC__StreamDecoder *decoder, void *client_data)
  * \code
  * {
- *   FILE *file = ((MyClientData*)client_data)->file;
+ *   FLAC_FILE *file = ((MyClientData*)client_data)->file;
  *   return feof(file)? true : false;
  * }
  * \endcode
@@ -1010,7 +1010,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_get_decode_position(const FLAC__StreamD
  *
  *  This flavor of initialization sets up the decoder to decode from a
  *  native FLAC stream. I/O is performed via callbacks to the client.
- *  For decoding from a plain file via filename or open FILE*,
+ *  For decoding from a plain file via filename or open FLAC_FILE*,
  *  FLAC__stream_decoder_init_file() and FLAC__stream_decoder_init_FILE()
  *  provide a simpler interface.
  *
@@ -1087,7 +1087,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_stream(
  *
  *  This flavor of initialization sets up the decoder to decode from a
  *  FLAC stream in an Ogg container. I/O is performed via callbacks to the
- *  client.  For decoding from a plain file via filename or open FILE*,
+ *  client.  For decoding from a plain file via filename or open FLAC_FILE*,
  *  FLAC__stream_decoder_init_ogg_file() and FLAC__stream_decoder_init_ogg_FILE()
  *  provide a simpler interface.
  *
@@ -1203,7 +1203,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_ogg_stream(
  */
 FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_FILE(
 	FLAC__StreamDecoder *decoder,
-	FILE *file,
+	FLAC_FILE *file,
 	FLAC__StreamDecoderWriteCallback write_callback,
 	FLAC__StreamDecoderMetadataCallback metadata_callback,
 	FLAC__StreamDecoderErrorCallback error_callback,
@@ -1253,7 +1253,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_FILE(
  */
 FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_ogg_FILE(
 	FLAC__StreamDecoder *decoder,
-	FILE *file,
+	FLAC_FILE *file,
 	FLAC__StreamDecoderWriteCallback write_callback,
 	FLAC__StreamDecoderMetadataCallback metadata_callback,
 	FLAC__StreamDecoderErrorCallback error_callback,

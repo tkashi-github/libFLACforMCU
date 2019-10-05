@@ -33,7 +33,7 @@
 #ifndef FLAC__STREAM_ENCODER_H
 #define FLAC__STREAM_ENCODER_H
 
-#include <stdio.h> /* for FILE */
+#include "include/compat.h"
 #include "export.h"
 #include "format.h"
 #include "stream_decoder.h"
@@ -66,7 +66,7 @@ extern "C" {
  * If the client also supplies a seek callback, the encoder will also
  * automatically handle the writing back of metadata discovered while
  * encoding, like stream info, seek points offsets, etc.  When encoding to
- * a file, the client needs only supply a filename or open \c FILE* and an
+ * a file, the client needs only supply a filename or open \c FLAC_FILE* and an
  * optional progress callback for periodic notification of progress; the
  * write and seek callbacks are supplied internally.  For more info see the
  * \link flac_stream_encoder stream encoder \endlink module.
@@ -153,7 +153,7 @@ extern "C" {
  *
  * For encoding directly to a file, use FLAC__stream_encoder_init_FILE()
  * or FLAC__stream_encoder_init_file().  Then you must only supply a
- * filename or open \c FILE*; the encoder will handle all the callbacks
+ * filename or open \c FLAC_FILE*; the encoder will handle all the callbacks
  * internally.  You may also supply a progress callback for periodic
  * notification of the encoding progress.
  *
@@ -484,7 +484,7 @@ typedef struct {
  * \code
  * FLAC__StreamEncoderReadStatus read_cb(const FLAC__StreamEncoder *encoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
  * {
- *   FILE *file = ((MyClientData*)client_data)->file;
+ *   FLAC_FILE *file = ((MyClientData*)client_data)->file;
  *   if(*bytes > 0) {
  *     *bytes = fread(buffer, sizeof(FLAC__byte), *bytes, file);
  *     if(ferror(file))
@@ -567,7 +567,7 @@ typedef FLAC__StreamEncoderWriteStatus (*FLAC__StreamEncoderWriteCallback)(const
  * \code
  * FLAC__StreamEncoderSeekStatus seek_cb(const FLAC__StreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data)
  * {
- *   FILE *file = ((MyClientData*)client_data)->file;
+ *   FLAC_FILE *file = ((MyClientData*)client_data)->file;
  *   if(file == stdin)
  *     return FLAC__STREAM_ENCODER_SEEK_STATUS_UNSUPPORTED;
  *   else if(fseeko(file, (off_t)absolute_byte_offset, SEEK_SET) < 0)
@@ -600,7 +600,7 @@ typedef FLAC__StreamEncoderSeekStatus (*FLAC__StreamEncoderSeekCallback)(const F
  * The callback must return the true current byte offset of the output to
  * which the encoder is writing.  If you are buffering the output, make
  * sure and take this into account.  If you are writing directly to a
- * FILE* from your write callback, ftell() is sufficient.  If you are
+ * FLAC_FILE* from your write callback, ftell() is sufficient.  If you are
  * writing directly to a file descriptor from your write callback, you
  * can use lseek(fd, SEEK_CUR, 0).  The encoder may later seek back to
  * these points to rewrite metadata after encoding.
@@ -609,7 +609,7 @@ typedef FLAC__StreamEncoderSeekStatus (*FLAC__StreamEncoderSeekCallback)(const F
  * \code
  * FLAC__StreamEncoderTellStatus tell_cb(const FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
  * {
- *   FILE *file = ((MyClientData*)client_data)->file;
+ *   FLAC_FILE *file = ((MyClientData*)client_data)->file;
  *   off_t pos;
  *   if(file == stdin)
  *     return FLAC__STREAM_ENCODER_TELL_STATUS_UNSUPPORTED;
@@ -1433,7 +1433,7 @@ FLAC_API FLAC__uint64 FLAC__stream_encoder_get_total_samples_estimate(const FLAC
  *
  *  This flavor of initialization sets up the encoder to encode to a
  *  native FLAC stream. I/O is performed via callbacks to the client.
- *  For encoding to a plain file via filename or open \c FILE*,
+ *  For encoding to a plain file via filename or open \c FLAC_FILE*,
  *  FLAC__stream_encoder_init_file() and FLAC__stream_encoder_init_FILE()
  *  provide a simpler interface.
  *
@@ -1496,7 +1496,7 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_stream(FLAC__St
  *
  *  This flavor of initialization sets up the encoder to encode to a FLAC
  *  stream in an Ogg container.  I/O is performed via callbacks to the
- *  client.  For encoding to a plain file via filename or open \c FILE*,
+ *  client.  For encoding to a plain file via filename or open \c FLAC_FILE*,
  *  FLAC__stream_encoder_init_ogg_file() and FLAC__stream_encoder_init_ogg_FILE()
  *  provide a simpler interface.
  *
@@ -1593,7 +1593,7 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_ogg_stream(FLAC
  *    \c FLAC__STREAM_ENCODER_INIT_STATUS_OK if initialization was successful;
  *    see FLAC__StreamEncoderInitStatus for the meanings of other return values.
  */
-FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_FILE(FLAC__StreamEncoder *encoder, FILE *file, FLAC__StreamEncoderProgressCallback progress_callback, void *client_data);
+FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_FILE(FLAC__StreamEncoder *encoder, FLAC_FILE *file, FLAC__StreamEncoderProgressCallback progress_callback, void *client_data);
 
 /** Initialize the encoder instance to encode Ogg FLAC files.
  *
@@ -1628,7 +1628,7 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_FILE(FLAC__Stre
  *    \c FLAC__STREAM_ENCODER_INIT_STATUS_OK if initialization was successful;
  *    see FLAC__StreamEncoderInitStatus for the meanings of other return values.
  */
-FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_ogg_FILE(FLAC__StreamEncoder *encoder, FILE *file, FLAC__StreamEncoderProgressCallback progress_callback, void *client_data);
+FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_ogg_FILE(FLAC__StreamEncoder *encoder, FLAC_FILE *file, FLAC__StreamEncoderProgressCallback progress_callback, void *client_data);
 
 /** Initialize the encoder instance to encode native FLAC files.
  *

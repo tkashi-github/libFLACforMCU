@@ -3,31 +3,5 @@
 		{
 			"path": "."
 		}
-	],
-	"settings": {
-		"editor.insertSpaces": false,
-		"editor.tabSize": 4,
-		"files.encoding": "utf8",
-		"c-cpp-flylint.clang.standard": [
-			"c11"
-		],
-		"clang.cxxflags": [
-			"--std=c++11"
-		],
-		"clang.cflags": [
-			"--std=c11"
-		],
-		"C_Cpp.default.includePath": [
-			"${workspaceFolder}/",
-			"${workspaceFolder}/source",
-		],
-		"files.associations": {
-			
-		},
-		"C_Cpp.default.defines": [
-			"__GNUC__",
-			"FLAC_ENV_EMBEDDED",
-		],
-		"editor.autoClosingBrackets": "never",
-	}
+	]
 }
