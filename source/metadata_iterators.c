@@ -1479,7 +1479,7 @@ static FLAC__bool chain_rewrite_metadata_in_place_(FLAC__Metadata_Chain *chain)
 
 	FLAC__ASSERT(0 != chain->filename);
 
-	if (0 == (file = flac_fopen(chain->filename, "r+b")))
+	if (false == flac_fopen(file, chain->filename, enFlacFopenModeRead)))
 	{
 		chain->status = FLAC__METADATA_CHAIN_STATUS_ERROR_OPENING_FILE;
 		return false;
@@ -1505,7 +1505,7 @@ static FLAC__bool chain_rewrite_file_(FLAC__Metadata_Chain *chain, const char *t
 	FLAC__ASSERT(0 != chain->head);
 
 	/* copy the file prefix (data up to first metadata block */
-	if (0 == (f = flac_fopen(chain->filename, "rb")))
+	if ((false == flac_fopen(f, chain->filename, enFlacFopenModeRead)))
 	{
 		chain->status = FLAC__METADATA_CHAIN_STATUS_ERROR_OPENING_FILE;
 		return false;
@@ -1658,7 +1658,7 @@ static FLAC__bool chain_read_(FLAC__Metadata_Chain *chain, const char *filename,
 
 	chain->is_ogg = is_ogg;
 
-	if (0 == (file = flac_fopen(filename, "rb")))
+	if (false == flac_fopen(file, filename, enFlacFopenModeRead)))
 	{
 		chain->status = FLAC__METADATA_CHAIN_STATUS_ERROR_OPENING_FILE;
 		return false;
@@ -3583,7 +3583,7 @@ FLAC__bool open_tempfile_(const char *filename, const char *tempfile_path_prefix
 		local_snprintf(*tempfilename, dest_len, "%s/%s%s", tempfile_path_prefix, p, tempfile_suffix);
 	}
 
-	if (0 == (*tempfile = flac_fopen(*tempfilename, "w+b")))
+	if (false == flac_fopen(tempfile, *tempfilename, enFlacFopenModeWrite)))
 	{
 		*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ERROR_OPENING_FILE;
 		return false;

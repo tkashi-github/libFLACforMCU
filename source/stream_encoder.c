@@ -365,7 +365,7 @@ typedef struct FLAC__StreamEncoderPrivate {
 	FLAC__StreamEncoderProgressCallback progress_callback;
 	void *client_data;
 	uint32_t first_seekpoint_to_check;
-	FLAC_FILE *file;                            /* only used when encoding to a file */
+	FLAC_FILE file;                            /* only used when encoding to a file */
 	FLAC__uint64 bytes_written;
 	FLAC__uint64 samples_written;
 	uint32_t frames_written;
@@ -522,7 +522,7 @@ FLAC_API FLAC__StreamEncoder *FLAC__stream_encoder_new(void)
 		return 0;
 	}
 
-	encoder->private_->file = 0;
+	memset(&encoder->private_->file, 0, sizeof(FLAC_FILE));;
 
 	set_defaults_(encoder);
 
@@ -1335,23 +1335,7 @@ static FLAC__StreamEncoderInitStatus init_FILE_internal_(
 		return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 	}
 
-	/*
-	 * To make sure that our file does not go unclosed after an error, we
-	 * must assign the FLAC_FILE pointer before any further error can occur in
-	 * this routine.
-	 */
-	if(file == stdout)
-		file = get_binary_stdout_(); /* just to be safe */
-
-#ifdef _WIN32
-	/*
-	 * Windows can suffer quite badly from disk fragmentation. This can be
-	 * reduced significantly by setting the output buffer size to be 10MB.
-	 */
-	if(GetFileType((HANDLE)_get_osfhandle(_fileno(file))) == FILE_TYPE_DISK)
-		setvbuf(file, NULL, _IOFBF, 10*1024*1024);
-#endif
-	encoder->private_->file = file;
+	encoder->private_->file = *file;
 
 	encoder->private_->progress_callback = progress_callback;
 	encoder->private_->bytes_written = 0;
@@ -1360,10 +1344,10 @@ static FLAC__StreamEncoderInitStatus init_FILE_internal_(
 
 	init_status = init_stream_internal_(
 		encoder,
-		encoder->private_->file == stdout? 0 : is_ogg? file_read_callback_ : 0,
+		is_ogg? file_read_callback_ : 0,
 		file_write_callback_,
-		encoder->private_->file == stdout? 0 : file_seek_callback_,
-		encoder->private_->file == stdout? 0 : file_tell_callback_,
+		file_seek_callback_,
+		file_tell_callback_,
 		/*metadata_callback=*/0,
 		client_data,
 		is_ogg
@@ -1411,7 +1395,7 @@ static FLAC__StreamEncoderInitStatus init_file_internal_(
 	FLAC__bool is_ogg
 )
 {
-	FLAC_FILE *file;
+	FLAC_FILE file;
 
 	FLAC__ASSERT(0 != encoder);
 
@@ -1423,14 +1407,13 @@ static FLAC__StreamEncoderInitStatus init_file_internal_(
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return FLAC__STREAM_ENCODER_INIT_STATUS_ALREADY_INITIALIZED;
 
-	file = filename? flac_fopen(filename, "w+b") : stdout;
-
-	if(file == 0) {
+	if(false == flac_fopen(&file, filename, enFlacFopenModeOpenAdd))
+	{
 		encoder->protected_->state = FLAC__STREAM_ENCODER_IO_ERROR;
 		return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 	}
 
-	return init_FILE_internal_(encoder, file, progress_callback, client_data, is_ogg);
+	return init_FILE_internal_(encoder, &file, progress_callback, client_data, is_ogg);
 }
 
 FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_file(
@@ -1503,11 +1486,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 		}
 	}
 
-	if(0 != encoder->private_->file) {
-		if(encoder->private_->file != stdout)
-			fclose(encoder->private_->file);
-		encoder->private_->file = 0;
-	}
+	fclose(encoder->private_->file);
 
 #if FLAC__HAS_OGG
 	if(encoder->private_->is_ogg)

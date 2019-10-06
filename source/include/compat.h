@@ -86,7 +86,6 @@ extern "C" {
 #if defined(USE_FAT_FS)
 #include "ff.h"
 /*FRESULT f_open (FIL* fp, const TCHAR* path, BYTE mode);*/
-#define flac_fopen f_open
 #define flac_utime f_utime
 #define flac_unlink f_unlink
 #define flac_rename f_rename
@@ -98,6 +97,8 @@ typedef FIL FLAC_FILE;
 #endif
 
 typdef enum{
+	enFlacFopenModeOpen,
+	enFlacFopenModeOpenAdd,
     enFlacFopenModeRead,
     enFlacFopenModeWrite,
 }enLFlacFopenMode_t;
@@ -111,8 +112,8 @@ extern int flac_fseeko(FLAC_FILE *fp, int32_t offset, int32_t whence);
 
 
 
-extern void *pvlibSYSMalloc( size_t xWantedSize );
-extern void vlibSYSPortFree( void *pv );
+extern void *pvlibTCMMalloc( size_t xWantedSize );
+extern void vlibTCMPortFree( void *pv );
 extern size_t xlibSYSPortGetFreeHeapSize( void );
 #define FLAC__FREE(x) FlacSysFree((uintptr_t)(x), __FUNCTION__, __LINE__)
 #define FLAC_MALLOC(x) FlacSysMalloc((x), __FUNCTION__, __LINE__)
@@ -126,7 +127,7 @@ extern void DumpMallocInfo(void);
 
 static inline void *FlacSysMalloc(size_t xWantedSize, const char pszFunc[], uint32_t u32Line){
 	
-	void *ptr = pvlibSYSMalloc(xWantedSize);
+	void *ptr = pvlibTCMMalloc(xWantedSize);
 	if(ptr != NULL){
 		//AddMallocInfo((uintptr_t)ptr, xWantedSize, pszFunc, u32Line);
 		//flac_printf("[%s (%d)] ptr = 0x%08lX, xWantedSize = %lu\r\n", pszFunc, u32Line, ptr, xWantedSize);
@@ -137,7 +138,7 @@ static inline void *FlacSysMalloc(size_t xWantedSize, const char pszFunc[], uint
 }
 static inline void FlacSysFree(uintptr_t pv, const char pszFile[], uint32_t u32Line){
 	if(pv != 0){
-		vlibSYSPortFree((void*)pv);
+		vlibTCMPortFree((void*)pv);
 		//DelMallocInfo(pv);
 		//flac_printf("[%s (%d)] ptr = 0x%08lX\r\n", pszFile, u32Line, pv);
 	}
