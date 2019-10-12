@@ -3258,7 +3258,7 @@ uint32_t seek_to_first_metadata_block_cb_(FLAC__IOHandle handle, FLAC__IOCallbac
 	{
 		return 3;
 	}
-	else if (0 == memcmp(buffer, "ID3", 3))
+	else if (false != flac_memcmp(buffer, "ID3", 3))
 	{
 		uint32_t tag_length = 0;
 
@@ -3288,7 +3288,7 @@ uint32_t seek_to_first_metadata_block_cb_(FLAC__IOHandle handle, FLAC__IOCallbac
 	}
 
 	/* check for the fLaC signature */
-	if (0 == memcmp(FLAC__STREAM_SYNC_STRING, buffer, FLAC__STREAM_SYNC_LENGTH))
+	if (false != flac_memcmp(FLAC__STREAM_SYNC_STRING, buffer, FLAC__STREAM_SYNC_LENGTH))
 	{
 		return 0;
 	}
@@ -3300,7 +3300,7 @@ uint32_t seek_to_first_metadata_block_cb_(FLAC__IOHandle handle, FLAC__IOCallbac
 
 uint32_t seek_to_first_metadata_block_(FLAC_FILE *f)
 {
-	return seek_to_first_metadata_block_cb_((FLAC__IOHandle)f, (FLAC__IOCallback_Read)fread, fseek_wrapper_);
+	return seek_to_first_metadata_block_cb_((FLAC__IOHandle)f, (FLAC__IOCallback_Read)flac_fread, fseek_wrapper_);
 }
 
 FLAC__bool simple_iterator_copy_file_prefix_(FLAC__Metadata_SimpleIterator *iterator, FLAC_FILE **tempfile, char **tempfilename, FLAC__bool append)

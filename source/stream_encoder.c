@@ -4382,7 +4382,7 @@ FLAC__StreamDecoderWriteStatus verify_write_callback_(const FLAC__StreamDecoder 
 	(void)decoder;
 
 	for(channel = 0; channel < channels; channel++) {
-		if(0 != memcmp(buffer[channel], encoder->private_->verify.input_fifo.data[channel], bytes_per_block)) {
+		if(false != flac_memcmp(buffer[channel], encoder->private_->verify.input_fifo.data[channel], bytes_per_block)) {
 			uint32_t i, sample = 0;
 			FLAC__int32 expect = 0, got = 0;
 

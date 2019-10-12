@@ -670,8 +670,10 @@ FLAC_API FLAC__bool FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder)
 
 	if (decoder->private_->do_md5_checking)
 	{
-		if (memcmp(decoder->private_->stream_info.data.stream_info.md5sum, decoder->private_->computed_md5sum, 16))
+		if (flac_memcmp(decoder->private_->stream_info.data.stream_info.md5sum, decoder->private_->computed_md5sum, 16) != false)
+		{
 			md5_failed = true;
+		}
 	}
 	decoder->private_->is_seeking = false;
 
@@ -1328,7 +1330,7 @@ FLAC__bool has_id_filtered_(FLAC__StreamDecoder *decoder, FLAC__byte *id)
 	FLAC__ASSERT(0 != decoder->private_);
 
 	for (i = 0; i < decoder->private_->metadata_filter_ids_count; i++)
-		if (0 == memcmp(decoder->private_->metadata_filter_ids + i * (FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8), id, (FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8)))
+		if (false != flac_memcmp(decoder->private_->metadata_filter_ids + i * (FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8), id, (FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8)))
 			return true;
 
 	return false;
@@ -1432,7 +1434,7 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 			return false;
 
 		decoder->private_->has_stream_info = true;
-		if (0 == memcmp(decoder->private_->stream_info.data.stream_info.md5sum, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16))
+		if (false != flac_memcmp(decoder->private_->stream_info.data.stream_info.md5sum, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16))
 			decoder->private_->do_md5_checking = false;
 		if (!decoder->private_->is_seeking && decoder->private_->metadata_filter[FLAC__METADATA_TYPE_STREAMINFO] && decoder->private_->metadata_callback)
 			decoder->private_->metadata_callback(decoder, &decoder->private_->stream_info, decoder->private_->client_data);

@@ -191,6 +191,28 @@ extern void DelMallocInfo(uintptr_t addr);
 extern void DumpMallocInfo(void);
 #endif
 
+static inline _Bool flac_memcmp(const void * p1, const void * p2, uint32_t u32ByteCnt)
+{
+	/*-- var --*/
+	uint8_t *pu81 = (uint8_t *)p1;
+	uint8_t *pu82 = (uint8_t *)p2;
+	_Bool bret = true;
+
+	/*-- begin --*/
+	if ((p1 != NULL) && (p2 != NULL))
+	{
+		for (uint32_t i = 0u; i < u32ByteCnt; i++)
+		{
+			if (pu81[i] != pu82[i])
+			{
+				bret = false;
+				break;
+			}
+		}
+	}
+	return bret;
+}
+
 static inline uint32_t flac_strlen(const char pszStr[])
 {
 	/*-- var --*/

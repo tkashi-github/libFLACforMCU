@@ -748,7 +748,7 @@ static FLAC__bool compare_block_data_streaminfo_(const FLAC__StreamMetadata_Stre
 		return false;
 	if (block1->total_samples != block2->total_samples)
 		return false;
-	if (memcmp(block1->md5sum, block2->md5sum, 16) != 0)
+	if (flac_memcmp(block1->md5sum, block2->md5sum, 16) == false)
 		return false;
 	return true;
 }
@@ -759,12 +759,18 @@ static FLAC__bool compare_block_data_application_(const FLAC__StreamMetadata_App
 	FLAC__ASSERT(block2 != NULL);
 	FLAC__ASSERT(block_length >= sizeof(block1->id));
 
-	if (memcmp(block1->id, block2->id, sizeof(block1->id)) != 0)
+	if (flac_memcmp(block1->id, block2->id, sizeof(block1->id)) == false)
+	{
 		return false;
+	}
 	if (block1->data != NULL && block2->data != NULL)
-		return memcmp(block1->data, block2->data, block_length - sizeof(block1->id)) == 0;
+	{
+		return flac_memcmp(block1->data, block2->data, block_length - sizeof(block1->id)) != false;
+	}
 	else
+	{
 		return block1->data == block2->data;
+	}
 }
 
 static FLAC__bool compare_block_data_seektable_(const FLAC__StreamMetadata_SeekTable *block1, const FLAC__StreamMetadata_SeekTable *block2)
@@ -803,11 +809,15 @@ static FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetadata_V
 
 	if (block1->vendor_string.entry != NULL && block2->vendor_string.entry != NULL)
 	{
-		if (memcmp(block1->vendor_string.entry, block2->vendor_string.entry, block1->vendor_string.length) != 0)
+		if (flac_memcmp(block1->vendor_string.entry, block2->vendor_string.entry, block1->vendor_string.length) == false)
+		{
 			return false;
+		}
 	}
 	else if (block1->vendor_string.entry != block2->vendor_string.entry)
+	{	
 		return false;
+	}
 
 	if (block1->num_comments != block2->num_comments)
 		return false;
@@ -816,11 +826,15 @@ static FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetadata_V
 	{
 		if (block1->comments[i].entry != NULL && block2->comments[i].entry != NULL)
 		{
-			if (memcmp(block1->comments[i].entry, block2->comments[i].entry, block1->comments[i].length) != 0)
+			if (flac_memcmp(block1->comments[i].entry, block2->comments[i].entry, block1->comments[i].length) == false)
+			{
 				return false;
+			}
 		}
 		else if (block1->comments[i].entry != block2->comments[i].entry)
+		{
 			return false;
+		}
 	}
 	return true;
 }
@@ -850,7 +864,7 @@ static FLAC__bool compare_block_data_cuesheet_(const FLAC__StreamMetadata_CueShe
 				return false;
 			if (block1->tracks[i].number != block2->tracks[i].number)
 				return false;
-			if (memcmp(block1->tracks[i].isrc, block2->tracks[i].isrc, sizeof(block1->tracks[i].isrc)) != 0)
+			if (flac_memcmp(block1->tracks[i].isrc, block2->tracks[i].isrc, sizeof(block1->tracks[i].isrc)) == false)
 				return false;
 			if (block1->tracks[i].type != block2->tracks[i].type)
 				return false;
@@ -896,7 +910,7 @@ static FLAC__bool compare_block_data_picture_(const FLAC__StreamMetadata_Picture
 		return false;
 	if (block1->data_length != block2->data_length)
 		return false;
-	if (block1->data != block2->data && (block1->data == NULL || block2->data == NULL || memcmp(block1->data, block2->data, block1->data_length)))
+	if (block1->data != block2->data && (block1->data == NULL || block2->data == NULL || (false == flac_memcmp(block1->data, block2->data, block1->data_length))))
 		return false;
 	return true;
 }
@@ -907,7 +921,7 @@ static FLAC__bool compare_block_data_unknown_(const FLAC__StreamMetadata_Unknown
 	FLAC__ASSERT(block2 != NULL);
 
 	if (block1->data != NULL && block2->data != NULL)
-		return memcmp(block1->data, block2->data, block_length) == 0;
+		return (flac_memcmp(block1->data, block2->data, block_length) != false);
 	else
 		return block1->data == block2->data;
 }
