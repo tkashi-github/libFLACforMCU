@@ -41,7 +41,7 @@ static FLAC__bool add_residual_partitioned_rice_(FLAC__BitWriter *bw, const FLAC
 FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__BitWriter *bw)
 {
 	uint32_t i, j;
-	const uint32_t vendor_string_length = (uint32_t)strlen(FLAC__VENDOR_STRING);
+	const uint32_t vendor_string_length = (uint32_t)flac_strlen(FLAC__VENDOR_STRING);
 
 	if (!FLAC__bitwriter_write_raw_uint32(bw, metadata->is_last, FLAC__STREAM_METADATA_IS_LAST_LEN))
 		return false;
@@ -183,12 +183,12 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 		uint32_t len;
 		if (!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.picture.type, FLAC__STREAM_METADATA_PICTURE_TYPE_LEN))
 			return false;
-		len = strlen(metadata->data.picture.mime_type);
+		len = flac_strlen(metadata->data.picture.mime_type);
 		if (!FLAC__bitwriter_write_raw_uint32(bw, len, FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN))
 			return false;
 		if (!FLAC__bitwriter_write_byte_block(bw, (const FLAC__byte *)metadata->data.picture.mime_type, len))
 			return false;
-		len = strlen((const char *)metadata->data.picture.description);
+		len = flac_strlen((const char *)metadata->data.picture.description);
 		if (!FLAC__bitwriter_write_raw_uint32(bw, len, FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN))
 			return false;
 		if (!FLAC__bitwriter_write_byte_block(bw, metadata->data.picture.description, len))

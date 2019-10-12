@@ -1668,7 +1668,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_apodization(FLAC__StreamEncoder *en
 	encoder->protected_->num_apodizations = 0;
 	while(1) {
 		const char *s = strchr(specification, ';');
-		const uint32_t n = s? (uint32_t)(s - specification) : strlen(specification);
+		const uint32_t n = s? (uint32_t)(s - specification) : flac_strlen(specification);
 		if     (n==8  && 0 == strncmp("bartlett"     , specification, n))
 			encoder->protected_->apodizations[encoder->protected_->num_apodizations++].type = FLAC__APODIZATION_BARTLETT;
 		else if(n==13 && 0 == strncmp("bartlett_hann", specification, n))

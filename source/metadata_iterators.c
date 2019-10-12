@@ -3037,7 +3037,7 @@ FLAC__bool write_metadata_block_data_picture_cb_(FLAC__IOHandle handle, FLAC__IO
 		return false;
 
 	len = FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN / 8;
-	slen = strlen(block->mime_type);
+	slen = flac_strlen(block->mime_type);
 	pack_uint32_(slen, buffer, len);
 	if (write_cb(buffer, 1, len, handle) != len)
 		return false;
@@ -3045,7 +3045,7 @@ FLAC__bool write_metadata_block_data_picture_cb_(FLAC__IOHandle handle, FLAC__IO
 		return false;
 
 	len = FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN / 8;
-	slen = strlen((const char *)block->description);
+	slen = flac_strlen((const char *)block->description);
 	pack_uint32_(slen, buffer, len);
 	if (write_cb(buffer, 1, len, handle) != len)
 		return false;
@@ -3544,7 +3544,7 @@ FLAC__bool open_tempfile_(const char *filename, const char *tempfile_path_prefix
 	static const char *tempfile_suffix = ".metadata_edit";
 	if (0 == tempfile_path_prefix)
 	{
-		uint32_t dest_len = strlen(filename) + strlen(tempfile_suffix) + 1;
+		uint32_t dest_len = flac_strlen(filename) + flac_strlen(tempfile_suffix) + 1;
 		if (0 == (*tempfilename = safe_malloc_(dest_len)))
 		{
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
@@ -3561,7 +3561,7 @@ FLAC__bool open_tempfile_(const char *filename, const char *tempfile_path_prefix
 		else
 			p++;
 
-		dest_len = strlen(tempfile_path_prefix) + strlen(p) + strlen(tempfile_suffix) + 2;
+		dest_len = flac_strlen(tempfile_path_prefix) + flac_strlen(p) + flac_strlen(tempfile_suffix) + 2;
 
 		if (0 == (*tempfilename = safe_malloc_(dest_len)))
 		{

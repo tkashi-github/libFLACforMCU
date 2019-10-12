@@ -468,7 +468,7 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type
 				*/
 			break;
 		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
-			object->data.vorbis_comment.vendor_string.length = (uint32_t)strlen(FLAC__VENDOR_STRING);
+			object->data.vorbis_comment.vendor_string.length = (uint32_t)flac_strlen(FLAC__VENDOR_STRING);
 			if (!copy_bytes_(&object->data.vorbis_comment.vendor_string.entry, (const FLAC__byte *)FLAC__VENDOR_STRING, object->data.vorbis_comment.vendor_string.length + 1))
 			{
 				FLAC_FREE(object);
@@ -1407,8 +1407,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pa
 		return false;
 
 	{
-		const uint32_t nn = strlen(field_name);
-		const uint32_t nv = strlen(field_value);
+		const uint32_t nn = flac_strlen(field_name);
+		const uint32_t nv = flac_strlen(field_value);
 		entry->length = nn + 1 /*=*/ + nv;
 		if ((entry->entry = safe_malloc_add_4op_(nn, /*+*/ 1, /*+*/ nv, /*+*/ 1)) == NULL)
 			return false;
@@ -1466,12 +1466,12 @@ FLAC_API int FLAC__metadata_object_vorbiscomment_find_entry_from(const FLAC__Str
 {
 	FLAC__ASSERT(field_name != NULL);
 
-	return vorbiscomment_find_entry_from_(object, offset, field_name, strlen(field_name));
+	return vorbiscomment_find_entry_from_(object, offset, field_name, flac_strlen(field_name));
 }
 
 FLAC_API int FLAC__metadata_object_vorbiscomment_remove_entry_matching(FLAC__StreamMetadata *object, const char *field_name)
 {
-	const uint32_t field_name_length = strlen(field_name);
+	const uint32_t field_name_length = flac_strlen(field_name);
 	uint32_t i;
 
 	FLAC__ASSERT(object != NULL);
@@ -1495,7 +1495,7 @@ FLAC_API int FLAC__metadata_object_vorbiscomment_remove_entries_matching(FLAC__S
 {
 	FLAC__bool ok = true;
 	uint32_t matching = 0;
-	const uint32_t field_name_length = strlen(field_name);
+	const uint32_t field_name_length = flac_strlen(field_name);
 	int i;
 
 	FLAC__ASSERT(object != NULL);
@@ -1823,8 +1823,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_picture_set_mime_type(FLAC__StreamMeta
 	FLAC__ASSERT(mime_type != NULL);
 
 	old = object->data.picture.mime_type;
-	old_length = old ? strlen(old) : 0;
-	new_length = strlen(mime_type);
+	old_length = old ? flac_strlen(old) : 0;
+	new_length = flac_strlen(mime_type);
 
 	/* do the copy first so that if we fail we leave the object untouched */
 	if (copy)
@@ -1856,8 +1856,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_picture_set_description(FLAC__StreamMe
 	FLAC__ASSERT(description != NULL);
 
 	old = object->data.picture.description;
-	old_length = old ? strlen((const char *)old) : 0;
-	new_length = strlen((const char *)description);
+	old_length = old ? flac_strlen((const char *)old) : 0;
+	new_length = flac_strlen((const char *)description);
 
 	/* do the copy first so that if we fail we leave the object untouched */
 	if (copy)
