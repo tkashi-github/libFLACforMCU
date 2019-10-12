@@ -31,7 +31,6 @@
  */
 
 #include <stdlib.h> /* for qsort() */
-#include <string.h> /* for flac_memset() */
 #include "include/assert.h"
 #include "include/format.h"
 #include "include/alloc.h"

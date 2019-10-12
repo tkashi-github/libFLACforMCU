@@ -478,7 +478,7 @@ typedef struct {
  *
  * Here is an example of a read callback for stdio streams:
  * \code
- * FLAC__StreamDecoderReadStatus read_cb(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
+ * FLAC__StreamDecoderReadStatus read_cb(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], uint32_t *bytes, void *client_data)
  * {
  *   FLAC_FILE *file = ((MyClientData*)client_data)->file;
  *   if(*bytes > 0) {
@@ -514,7 +514,7 @@ typedef struct {
  *    \c FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM if and only if
  *    zero bytes were read and there is no more data to be read.
  */
-typedef FLAC__StreamDecoderReadStatus (*FLAC__StreamDecoderReadCallback)(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data);
+typedef FLAC__StreamDecoderReadStatus (*FLAC__StreamDecoderReadCallback)(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], uint32_t *bytes, void *client_data);
 
 /** Signature for the seek callback.
  *

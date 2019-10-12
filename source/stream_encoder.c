@@ -123,7 +123,7 @@ static void set_defaults_(FLAC__StreamEncoder *encoder);
 static void free_(FLAC__StreamEncoder *encoder);
 static FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, uint32_t new_blocksize);
 static FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder, uint32_t samples, FLAC__bool is_last_block);
-static FLAC__StreamEncoderWriteStatus write_frame_(FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, uint32_t samples, FLAC__bool is_last_block);
+static FLAC__StreamEncoderWriteStatus write_frame_(FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], uint32_t bytes, uint32_t samples, FLAC__bool is_last_block);
 static void update_metadata_(const FLAC__StreamEncoder *encoder);
 #if FLAC__HAS_OGG
 static void update_ogg_metadata_(FLAC__StreamEncoder *encoder);
@@ -283,15 +283,15 @@ static void append_to_verify_fifo_interleaved_(
 	uint32_t wide_samples
 );
 
-static FLAC__StreamDecoderReadStatus verify_read_callback_(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data);
+static FLAC__StreamDecoderReadStatus verify_read_callback_(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], uint32_t *bytes, void *client_data);
 static FLAC__StreamDecoderWriteStatus verify_write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
 static void verify_metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
 static void verify_error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
-static FLAC__StreamEncoderReadStatus file_read_callback_(const FLAC__StreamEncoder *encoder, FLAC__byte buffer[], size_t *bytes, void *client_data);
+static FLAC__StreamEncoderReadStatus file_read_callback_(const FLAC__StreamEncoder *encoder, FLAC__byte buffer[], uint32_t *bytes, void *client_data);
 static FLAC__StreamEncoderSeekStatus file_seek_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
 static FLAC__StreamEncoderTellStatus file_tell_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
-static FLAC__StreamEncoderWriteStatus file_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame, void *client_data);
+static FLAC__StreamEncoderWriteStatus file_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], uint32_t bytes, uint32_t samples, uint32_t current_frame, void *client_data);
 static FLAC_FILE *get_binary_stdout_(void);
 
 
@@ -1668,7 +1668,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_apodization(FLAC__StreamEncoder *en
 	encoder->protected_->num_apodizations = 0;
 	while(1) {
 		const char *s = strchr(specification, ';');
-		const size_t n = s? (size_t)(s - specification) : strlen(specification);
+		const uint32_t n = s? (uint32_t)(s - specification) : strlen(specification);
 		if     (n==8  && 0 == strncmp("bartlett"     , specification, n))
 			encoder->protected_->apodizations[encoder->protected_->num_apodizations++].type = FLAC__APODIZATION_BARTLETT;
 		else if(n==13 && 0 == strncmp("bartlett_hann", specification, n))
@@ -2561,7 +2561,7 @@ FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, uint32_t new_blocksize)
 FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder, uint32_t samples, FLAC__bool is_last_block)
 {
 	const FLAC__byte *buffer;
-	size_t bytes;
+	uint32_t bytes;
 
 	FLAC__ASSERT(FLAC__bitwriter_is_byte_aligned(encoder->private_->frame));
 
@@ -2605,7 +2605,7 @@ FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder, uint32_t samples, FLAC
 	return true;
 }
 
-FLAC__StreamEncoderWriteStatus write_frame_(FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, uint32_t samples, FLAC__bool is_last_block)
+FLAC__StreamEncoderWriteStatus write_frame_(FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], uint32_t bytes, uint32_t samples, FLAC__bool is_last_block)
 {
 	FLAC__StreamEncoderWriteStatus status;
 	FLAC__uint64 output_position = 0;
@@ -4340,10 +4340,10 @@ void append_to_verify_fifo_interleaved_(verify_input_fifo *fifo, const FLAC__int
 	FLAC__ASSERT(fifo->tail <= fifo->size);
 }
 
-FLAC__StreamDecoderReadStatus verify_read_callback_(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
+FLAC__StreamDecoderReadStatus verify_read_callback_(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], uint32_t *bytes, void *client_data)
 {
 	FLAC__StreamEncoder *encoder = (FLAC__StreamEncoder*)client_data;
-	const size_t encoded_bytes = encoder->private_->verify.output.bytes;
+	const uint32_t encoded_bytes = encoder->private_->verify.output.bytes;
 	(void)decoder;
 
 	if(encoder->private_->verify.needs_magic_hack) {
@@ -4426,7 +4426,7 @@ void verify_error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDeco
 	encoder->protected_->state = FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR;
 }
 
-FLAC__StreamEncoderReadStatus file_read_callback_(const FLAC__StreamEncoder *encoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
+FLAC__StreamEncoderReadStatus file_read_callback_(const FLAC__StreamEncoder *encoder, FLAC__byte buffer[], uint32_t *bytes, void *client_data)
 {
 	(void)client_data;
 
@@ -4468,7 +4468,7 @@ FLAC__StreamEncoderTellStatus file_tell_callback_(const FLAC__StreamEncoder *enc
 }
 
 
-FLAC__StreamEncoderWriteStatus file_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame, void *client_data)
+FLAC__StreamEncoderWriteStatus file_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], uint32_t bytes, uint32_t samples, uint32_t current_frame, void *client_data)
 {
 	(void)client_data, (void)current_frame;
 

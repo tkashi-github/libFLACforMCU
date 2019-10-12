@@ -482,7 +482,7 @@ typedef struct {
  *
  * Here is an example of a read callback for stdio streams:
  * \code
- * FLAC__StreamEncoderReadStatus read_cb(const FLAC__StreamEncoder *encoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
+ * FLAC__StreamEncoderReadStatus read_cb(const FLAC__StreamEncoder *encoder, FLAC__byte buffer[], uint32_t *bytes, void *client_data)
  * {
  *   FLAC_FILE *file = ((MyClientData*)client_data)->file;
  *   if(*bytes > 0) {
@@ -516,7 +516,7 @@ typedef struct {
  * \retval FLAC__StreamEncoderReadStatus
  *    The callee's return status.
  */
-typedef FLAC__StreamEncoderReadStatus (*FLAC__StreamEncoderReadCallback)(const FLAC__StreamEncoder *encoder, FLAC__byte buffer[], size_t *bytes, void *client_data);
+typedef FLAC__StreamEncoderReadStatus (*FLAC__StreamEncoderReadCallback)(const FLAC__StreamEncoder *encoder, FLAC__byte buffer[], uint32_t *bytes, void *client_data);
 
 /** Signature for the write callback.
  *
@@ -554,7 +554,7 @@ typedef FLAC__StreamEncoderReadStatus (*FLAC__StreamEncoderReadCallback)(const F
  * \retval FLAC__StreamEncoderWriteStatus
  *    The callee's return status.
  */
-typedef FLAC__StreamEncoderWriteStatus (*FLAC__StreamEncoderWriteCallback)(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame, void *client_data);
+typedef FLAC__StreamEncoderWriteStatus (*FLAC__StreamEncoderWriteCallback)(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], uint32_t bytes, uint32_t samples, uint32_t current_frame, void *client_data);
 
 /** Signature for the seek callback.
  *

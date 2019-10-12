@@ -39,7 +39,7 @@ typedef struct {
 	FLAC__uint32 buf[4];
 	FLAC__uint32 bytes[2];
 	FLAC__multibyte internal_buf;
-	size_t capacity;
+	uint32_t capacity;
 } FLAC__MD5Context;
 
 void FLAC__MD5Init(FLAC__MD5Context *context);

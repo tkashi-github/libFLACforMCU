@@ -113,7 +113,7 @@ _Bool flac_fopen(FLAC_FILE* fp, const TCHAR path[], enLFlacFopenMode_t enMode)
 _END:
 	return bret;
 }
-UINT flac_fwrite(const void *buf, size_t size, size_t n, FLAC_FILE *fp){
+UINT flac_fwrite(const void *buf, uint32_t size, uint32_t n, FLAC_FILE *fp){
 	UINT bw;
 
 	if(FR_OK != f_write(fp, buf, size*n, &bw)){
@@ -123,7 +123,7 @@ UINT flac_fwrite(const void *buf, size_t size, size_t n, FLAC_FILE *fp){
 	return bw;
 }
 
-UINT flac_fread(void *buf, size_t size, size_t n, FLAC_FILE *fp){
+UINT flac_fread(void *buf, uint32_t size, uint32_t n, FLAC_FILE *fp){
 	UINT br;
 	FRESULT res = f_read(fp, buf, size*n, &br);
 	if(FR_OK != res){

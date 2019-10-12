@@ -147,7 +147,7 @@ static inline void crc16_update_block_(FLAC__BitReader *br)
 static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 {
 	uint32_t start, end;
-	size_t bytes;
+	uint32_t bytes;
 	FLAC__byte *target;
 
 	/* first shift the unconsumed buffer data toward the front as much as possible */

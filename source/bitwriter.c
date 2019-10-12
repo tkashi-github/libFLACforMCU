@@ -191,7 +191,7 @@ void FLAC__bitwriter_clear(FLAC__BitWriter *bw)
 FLAC__bool FLAC__bitwriter_get_write_crc16(FLAC__BitWriter *bw, FLAC__uint16 *crc)
 {
 	const FLAC__byte *buffer;
-	size_t bytes;
+	uint32_t bytes;
 
 	FLAC__ASSERT((bw->bits & 7) == 0); /* assert that we're byte-aligned */
 
@@ -206,7 +206,7 @@ FLAC__bool FLAC__bitwriter_get_write_crc16(FLAC__BitWriter *bw, FLAC__uint16 *cr
 FLAC__bool FLAC__bitwriter_get_write_crc8(FLAC__BitWriter *bw, FLAC__byte *crc)
 {
 	const FLAC__byte *buffer;
-	size_t bytes;
+	uint32_t bytes;
 
 	FLAC__ASSERT((bw->bits & 7) == 0); /* assert that we're byte-aligned */
 
@@ -228,7 +228,7 @@ uint32_t FLAC__bitwriter_get_input_bits_unconsumed(const FLAC__BitWriter *bw)
 	return FLAC__TOTAL_BITS(bw);
 }
 
-FLAC__bool FLAC__bitwriter_get_buffer(FLAC__BitWriter *bw, const FLAC__byte **buffer, size_t *bytes)
+FLAC__bool FLAC__bitwriter_get_buffer(FLAC__BitWriter *bw, const FLAC__byte **buffer, uint32_t *bytes)
 {
 	FLAC__ASSERT((bw->bits & 7) == 0);
 	/* double protection */

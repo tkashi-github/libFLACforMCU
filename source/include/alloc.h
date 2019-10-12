@@ -41,11 +41,7 @@
  * before #including this file,  otherwise SIZE_MAX might not be defined
  */
 
-#include <limits.h> /* for SIZE_MAX */
-#if HAVE_STDINT_H
-#include <stdint.h> /* for SIZE_MAX in case limits.h didn't get it */
-#endif
-#include <stdlib.h> /* for size_t, malloc(), etc */
+#include <stdint.h>
 #include "include/compat.h"
 
 #ifndef SIZE_MAX
@@ -66,7 +62,7 @@
 /* avoid malloc()ing 0 bytes, see:
  * https://www.securecoding.cert.org/confluence/display/seccode/MEM04-A.+Do+not+make+assumptions+about+the+result+of+allocating+0+bytes?focusedCommentId=5407003
 */
-static inline void *safe_malloc_(size_t size)
+static inline void *safe_malloc_(uint32_t size)
 {
 	/* malloc(0) is undefined; FLAC src convention is to always allocate */
 	if(!size)
@@ -74,7 +70,7 @@ static inline void *safe_malloc_(size_t size)
 	return FLAC_MALLOC(size);
 }
 
-static inline void *safe_calloc_(size_t nmemb, size_t size)
+static inline void *safe_calloc_(uint32_t nmemb, uint32_t size)
 {
 	if(!nmemb || !size)
 		return FLAC_MALLOC(1); /* malloc(0) is undefined; FLAC src convention is to always allocate */
@@ -83,7 +79,7 @@ static inline void *safe_calloc_(size_t nmemb, size_t size)
 
 /*@@@@ there's probably a better way to prevent overflows when allocating untrusted sums but this works for now */
 
-static inline void *safe_malloc_add_2op_(size_t size1, size_t size2)
+static inline void *safe_malloc_add_2op_(uint32_t size1, uint32_t size2)
 {
 	size2 += size1;
 	if(size2 < size1)
@@ -91,7 +87,7 @@ static inline void *safe_malloc_add_2op_(size_t size1, size_t size2)
 	return safe_malloc_(size2);
 }
 
-static inline void *safe_malloc_add_3op_(size_t size1, size_t size2, size_t size3)
+static inline void *safe_malloc_add_3op_(uint32_t size1, uint32_t size2, uint32_t size3)
 {
 	size2 += size1;
 	if(size2 < size1)
@@ -102,7 +98,7 @@ static inline void *safe_malloc_add_3op_(size_t size1, size_t size2, size_t size
 	return safe_malloc_(size3);
 }
 
-static inline void *safe_malloc_add_4op_(size_t size1, size_t size2, size_t size3, size_t size4)
+static inline void *safe_malloc_add_4op_(uint32_t size1, uint32_t size2, uint32_t size3, uint32_t size4)
 {
 	size2 += size1;
 	if(size2 < size1)
@@ -116,9 +112,9 @@ static inline void *safe_malloc_add_4op_(size_t size1, size_t size2, size_t size
 	return safe_malloc_(size4);
 }
 
-void *safe_malloc_mul_2op_(size_t size1, size_t size2) ;
+void *safe_malloc_mul_2op_(uint32_t size1, uint32_t size2) ;
 
-static inline void *safe_malloc_mul_3op_(size_t size1, size_t size2, size_t size3)
+static inline void *safe_malloc_mul_3op_(uint32_t size1, uint32_t size2, uint32_t size3)
 {
 	if(!size1 || !size2 || !size3)
 		return FLAC_MALLOC(1); /* malloc(0) is undefined; FLAC src convention is to always allocate */
@@ -131,7 +127,7 @@ static inline void *safe_malloc_mul_3op_(size_t size1, size_t size2, size_t size
 }
 
 /* size1*size2 + size3 */
-static inline void *safe_malloc_mul2add_(size_t size1, size_t size2, size_t size3)
+static inline void *safe_malloc_mul2add_(uint32_t size1, uint32_t size2, uint32_t size3)
 {
 	if(!size1 || !size2)
 		return safe_malloc_(size3);
@@ -141,7 +137,7 @@ static inline void *safe_malloc_mul2add_(size_t size1, size_t size2, size_t size
 }
 
 /* size1 * (size2 + size3) */
-static inline void *safe_malloc_muladd2_(size_t size1, size_t size2, size_t size3)
+static inline void *safe_malloc_muladd2_(uint32_t size1, uint32_t size2, uint32_t size3)
 {
 	if(!size1 || (!size2 && !size3))
 		return FLAC_MALLOC(1); /* malloc(0) is undefined; FLAC src convention is to always allocate */
@@ -153,7 +149,7 @@ static inline void *safe_malloc_muladd2_(size_t size1, size_t size2, size_t size
 	return FLAC_MALLOC(size1*size2);
 }
 
-static inline void *safe_realloc_(void *ptr, size_t size)
+static inline void *safe_realloc_(void *ptr, uint32_t size)
 {
 	void *oldptr = ptr;
 	void *newptr = FLAC_REALLOC(ptr, size);
@@ -161,7 +157,7 @@ static inline void *safe_realloc_(void *ptr, size_t size)
 		FLAC_FREE(oldptr);
 	return newptr;
 }
-static inline void *safe_realloc_add_2op_(void *ptr, size_t size1, size_t size2)
+static inline void *safe_realloc_add_2op_(void *ptr, uint32_t size1, uint32_t size2)
 {
 	size2 += size1;
 	if(size2 < size1) {
@@ -171,7 +167,7 @@ static inline void *safe_realloc_add_2op_(void *ptr, size_t size1, size_t size2)
 	return FLAC_REALLOC(ptr, size2);
 }
 
-static inline void *safe_realloc_add_3op_(void *ptr, size_t size1, size_t size2, size_t size3)
+static inline void *safe_realloc_add_3op_(void *ptr, uint32_t size1, uint32_t size2, uint32_t size3)
 {
 	size2 += size1;
 	if(size2 < size1)
@@ -182,7 +178,7 @@ static inline void *safe_realloc_add_3op_(void *ptr, size_t size1, size_t size2,
 	return FLAC_REALLOC(ptr, size3);
 }
 
-static inline void *safe_realloc_add_4op_(void *ptr, size_t size1, size_t size2, size_t size3, size_t size4)
+static inline void *safe_realloc_add_4op_(void *ptr, uint32_t size1, uint32_t size2, uint32_t size3, uint32_t size4)
 {
 	size2 += size1;
 	if(size2 < size1)
@@ -196,7 +192,7 @@ static inline void *safe_realloc_add_4op_(void *ptr, size_t size1, size_t size2,
 	return FLAC_REALLOC(ptr, size4);
 }
 
-static inline void *safe_realloc_mul_2op_(void *ptr, size_t size1, size_t size2)
+static inline void *safe_realloc_mul_2op_(void *ptr, uint32_t size1, uint32_t size2)
 {
 	if(!size1 || !size2)
 		return FLAC_REALLOC(ptr, 0); /* preserve POSIX FLAC_REALLOC(ptr, 0) semantics */
@@ -206,7 +202,7 @@ static inline void *safe_realloc_mul_2op_(void *ptr, size_t size1, size_t size2)
 }
 
 /* size1 * (size2 + size3) */
-static inline void *safe_realloc_muladd2_(void *ptr, size_t size1, size_t size2, size_t size3)
+static inline void *safe_realloc_muladd2_(void *ptr, uint32_t size1, uint32_t size2, uint32_t size3)
 {
 	if(!size1 || (!size2 && !size3))
 		return FLAC_REALLOC(ptr, 0); /* preserve POSIX FLAC_REALLOC(ptr, 0) semantics */

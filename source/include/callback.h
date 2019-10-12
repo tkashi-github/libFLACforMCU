@@ -33,8 +33,8 @@
 #ifndef FLAC__CALLBACK_H
 #define FLAC__CALLBACK_H
 
-#include "ordinals.h"
-#include <stdlib.h> /* for size_t */
+#include "include/compat.h"
+#include "include/ordinals.h"
 
 /** \file include/FLAC/callback.h
  *
@@ -96,10 +96,10 @@ typedef void* FLAC__IOHandle;
  * \param  size     The size of the records to be read.
  * \param  nmemb    The number of records to be read.
  * \param  handle   The handle to the data source.
- * \retval size_t
+ * \retval uint32_t
  *    The number of records read.
  */
-typedef size_t (*FLAC__IOCallback_Read) (void *ptr, size_t size, size_t nmemb, FLAC__IOHandle handle);
+typedef uint32_t (*FLAC__IOCallback_Read) (void *ptr, uint32_t size, uint32_t nmemb, FLAC__IOHandle handle);
 
 /** Signature for the write callback.
  *  The signature and semantics match POSIX fwrite() implementations
@@ -109,10 +109,10 @@ typedef size_t (*FLAC__IOCallback_Read) (void *ptr, size_t size, size_t nmemb, F
  * \param  size     The size of the records to be written.
  * \param  nmemb    The number of records to be written.
  * \param  handle   The handle to the data source.
- * \retval size_t
+ * \retval uint32_t
  *    The number of records written.
  */
-typedef size_t (*FLAC__IOCallback_Write) (const void *ptr, size_t size, size_t nmemb, FLAC__IOHandle handle);
+typedef uint32_t (*FLAC__IOCallback_Write) (const void *ptr, uint32_t size, uint32_t nmemb, FLAC__IOHandle handle);
 
 /** Signature for the seek callback.
  *  The signature and semantics mostly match POSIX fseek() WITH ONE IMPORTANT

@@ -30,9 +30,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdlib.h>
-#include <string.h>
-
 #include "include/metadata.h"
 #include "include/memory.h"
 
@@ -995,8 +992,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMe
 	}
 	else
 	{
-		const size_t old_size = object->data.seek_table.num_points * sizeof(FLAC__StreamMetadata_SeekPoint);
-		const size_t new_size = new_num_points * sizeof(FLAC__StreamMetadata_SeekPoint);
+		const uint32_t old_size = object->data.seek_table.num_points * sizeof(FLAC__StreamMetadata_SeekPoint);
+		const uint32_t new_size = new_num_points * sizeof(FLAC__StreamMetadata_SeekPoint);
 
 		/* overflow check */
 		if (new_num_points > UINT32_MAX / sizeof(FLAC__StreamMetadata_SeekPoint))
@@ -1245,8 +1242,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
 	}
 	else
 	{
-		const size_t old_size = object->data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry);
-		const size_t new_size = new_num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry);
+		const uint32_t old_size = object->data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry);
+		const uint32_t new_size = new_num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry);
 
 		/* overflow check */
 		if (new_num_comments > UINT32_MAX / sizeof(FLAC__StreamMetadata_VorbisComment_Entry))
@@ -1340,7 +1337,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_replace_comment(FLAC__St
 
 	{
 		int i;
-		size_t field_name_length;
+		uint32_t field_name_length;
 		const FLAC__byte *eq = (FLAC__byte *)memchr(entry.entry, '=', entry.length);
 
 		if (eq == NULL)
@@ -1410,8 +1407,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pa
 		return false;
 
 	{
-		const size_t nn = strlen(field_name);
-		const size_t nv = strlen(field_value);
+		const uint32_t nn = strlen(field_name);
+		const uint32_t nv = strlen(field_value);
 		entry->length = nn + 1 /*=*/ + nv;
 		if ((entry->entry = safe_malloc_add_4op_(nn, /*+*/ 1, /*+*/ nv, /*+*/ 1)) == NULL)
 			return false;
@@ -1435,8 +1432,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair
 
 	{
 		const FLAC__byte *eq = (FLAC__byte *)memchr(entry.entry, '=', entry.length);
-		const size_t nn = eq - entry.entry;
-		const size_t nv = entry.length - nn - 1; /* -1 for the '=' */
+		const uint32_t nn = eq - entry.entry;
+		const uint32_t nv = entry.length - nn - 1; /* -1 for the '=' */
 
 		if (eq == NULL)
 			return false; /* double protection */
@@ -1576,8 +1573,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_resize_indices(FLAC__St
 	}
 	else
 	{
-		const size_t old_size = track->num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index);
-		const size_t new_size = new_num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index);
+		const uint32_t old_size = track->num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index);
+		const uint32_t new_size = new_num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index);
 
 		/* overflow check */
 		if (new_num_indices > UINT32_MAX / sizeof(FLAC__StreamMetadata_CueSheet_Index))
@@ -1667,8 +1664,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_resize_tracks(FLAC__StreamMet
 	}
 	else
 	{
-		const size_t old_size = object->data.cue_sheet.num_tracks * sizeof(FLAC__StreamMetadata_CueSheet_Track);
-		const size_t new_size = new_num_tracks * sizeof(FLAC__StreamMetadata_CueSheet_Track);
+		const uint32_t old_size = object->data.cue_sheet.num_tracks * sizeof(FLAC__StreamMetadata_CueSheet_Track);
+		const uint32_t new_size = new_num_tracks * sizeof(FLAC__StreamMetadata_CueSheet_Track);
 
 		/* overflow check */
 		if (new_num_tracks > UINT32_MAX / sizeof(FLAC__StreamMetadata_CueSheet_Track))
@@ -1819,7 +1816,7 @@ FLAC_API FLAC__uint32 FLAC__metadata_object_cuesheet_calculate_cddb_id(const FLA
 FLAC_API FLAC__bool FLAC__metadata_object_picture_set_mime_type(FLAC__StreamMetadata *object, char *mime_type, FLAC__bool copy)
 {
 	char *old;
-	size_t old_length, new_length;
+	uint32_t old_length, new_length;
 
 	FLAC__ASSERT(object != NULL);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_PICTURE);
@@ -1852,7 +1849,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_picture_set_mime_type(FLAC__StreamMeta
 FLAC_API FLAC__bool FLAC__metadata_object_picture_set_description(FLAC__StreamMetadata *object, FLAC__byte *description, FLAC__bool copy)
 {
 	FLAC__byte *old;
-	size_t old_length, new_length;
+	uint32_t old_length, new_length;
 
 	FLAC__ASSERT(object != NULL);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_PICTURE);

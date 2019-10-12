@@ -180,7 +180,7 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 		break;
 	case FLAC__METADATA_TYPE_PICTURE:
 	{
-		size_t len;
+		uint32_t len;
 		if (!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.picture.type, FLAC__STREAM_METADATA_PICTURE_TYPE_LEN))
 			return false;
 		len = strlen(metadata->data.picture.mime_type);

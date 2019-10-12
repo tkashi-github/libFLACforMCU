@@ -73,7 +73,7 @@ uint32_t FLAC__bitwriter_get_input_bits_unconsumed(const FLAC__BitWriter *bw); /
  * the bitwriter continues to own the returned buffer.
  * before get, bitwriter MUST be byte aligned: check with FLAC__bitwriter_is_byte_aligned()
  */
-FLAC__bool FLAC__bitwriter_get_buffer(FLAC__BitWriter *bw, const FLAC__byte **buffer, size_t *bytes);
+FLAC__bool FLAC__bitwriter_get_buffer(FLAC__BitWriter *bw, const FLAC__byte **buffer, uint32_t *bytes);
 void FLAC__bitwriter_release_buffer(FLAC__BitWriter *bw);
 
 /*

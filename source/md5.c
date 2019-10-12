@@ -486,12 +486,12 @@ static void format_input_(FLAC__multibyte *mbuf, const FLAC__int32 * const signa
  */
 FLAC__bool FLAC__MD5Accumulate(FLAC__MD5Context *ctx, const FLAC__int32 * const signal[], uint32_t channels, uint32_t samples, uint32_t bytes_per_sample)
 {
-	const size_t bytes_needed = (size_t)channels * (size_t)samples * (size_t)bytes_per_sample;
+	const uint32_t bytes_needed = (uint32_t)channels * (uint32_t)samples * (uint32_t)bytes_per_sample;
 
 	/* overflow check */
-	if ((size_t)channels > SIZE_MAX / (size_t)bytes_per_sample)
+	if ((uint32_t)channels > SIZE_MAX / (uint32_t)bytes_per_sample)
 		return false;
-	if ((size_t)channels * (size_t)bytes_per_sample > SIZE_MAX / (size_t)samples)
+	if ((uint32_t)channels * (uint32_t)bytes_per_sample > SIZE_MAX / (uint32_t)samples)
 		return false;
 
 	if (ctx->capacity < bytes_needed) {
