@@ -31,6 +31,7 @@
 
 /* It is assumed that this header will be included after "config.h". */
 
+#pragma once
 #define	ENDSWAP_16(x)		((((x) >> 8) & 0xFF) | (((x) & 0xFF) << 8))
 #define	ENDSWAP_32(x)		((((x) >> 24) & 0xFF) | (((x) >> 8) & 0xFF00) | (((x) & 0xFF00) << 8) | (((x) & 0xFF) << 24))
 #define	ENDSWAP_64(x)		((ENDSWAP_32(((x) >> 32) & 0xFFFFFFFF)) | (ENDSWAP_32((x) & 0xFFFFFFFF) << 32))
@@ -38,4 +39,3 @@
 #define H2LE_16(x)		(x)
 #define H2LE_32(x)		(x)
 
-#endif

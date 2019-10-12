@@ -38,8 +38,6 @@
 #include "include/alloc.h"
 #include "include/compat.h"
 #include "include/macros.h"
-#include "include/safe_str.h"
-#include "include/macros.h"
 #include "include/memory.h"
 
 /* Alias the first (in share/alloc.h) to the second (in src/libFLAC/memory.c). */
@@ -277,8 +275,8 @@ FLAC_API FLAC__bool FLAC__metadata_get_picture(const char *filename, FLAC__Strea
 			/* check constraints */
 			if (
 				(type == (FLAC__StreamMetadata_Picture_Type)(-1) || type == obj->data.picture.type) &&
-				(mime_type == 0 || !strcmp(mime_type, obj->data.picture.mime_type)) &&
-				(description == 0 || !strcmp((const char *)description, (const char *)obj->data.picture.description)) &&
+				(mime_type == 0 || !flac_strcmp(mime_type, obj->data.picture.mime_type)) &&
+				(description == 0 || !flac_strcmp((const char *)description, (const char *)obj->data.picture.description)) &&
 				obj->data.picture.width <= max_width &&
 				obj->data.picture.height <= max_height &&
 				obj->data.picture.depth <= max_depth &&
@@ -414,7 +412,7 @@ static FLAC__bool simple_iterator_prime_input_(FLAC__Metadata_SimpleIterator *it
 	if (read_only || (false == flac_fopen(iterator->file, iterator->filename, enFlacFopenModeRead)))
 	{
 		iterator->is_writable = false;
-		if (read_only || errno == EACCES)
+		if (read_only)
 		{
 			if (false == flac_fopen(iterator->file, iterator->filename, enFlacFopenModeRead))
 			{
@@ -485,12 +483,12 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_init(FLAC__Metadata_SimpleIte
 	if (!read_only && preserve_file_stats)
 		iterator->has_stats = get_file_stats_(filename, &iterator->stats);
 
-	if (0 == (iterator->filename = strdup(filename)))
+	if (0 == (iterator->filename = flac_strdup(filename)))
 	{
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 		return false;
 	}
-	if (0 != tempfile_path_prefix && 0 == (iterator->tempfile_path_prefix = strdup(tempfile_path_prefix)))
+	if (0 != tempfile_path_prefix && 0 == (iterator->tempfile_path_prefix = flac_strdup(tempfile_path_prefix)))
 	{
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 		return false;
@@ -1467,7 +1465,7 @@ static FLAC__bool chain_rewrite_metadata_in_place_(FLAC__Metadata_Chain *chain)
 
 	FLAC__ASSERT(0 != chain->filename);
 
-	if (false == flac_fopen(file, chain->filename, enFlacFopenModeRead)))
+	if (false == flac_fopen(file, chain->filename, enFlacFopenModeRead))
 	{
 		chain->status = FLAC__METADATA_CHAIN_STATUS_ERROR_OPENING_FILE;
 		return false;
@@ -1493,7 +1491,7 @@ static FLAC__bool chain_rewrite_file_(FLAC__Metadata_Chain *chain, const char *t
 	FLAC__ASSERT(0 != chain->head);
 
 	/* copy the file prefix (data up to first metadata block */
-	if ((false == flac_fopen(f, chain->filename, enFlacFopenModeRead)))
+	if (false == flac_fopen(f, chain->filename, enFlacFopenModeRead))
 	{
 		chain->status = FLAC__METADATA_CHAIN_STATUS_ERROR_OPENING_FILE;
 		return false;
@@ -1638,7 +1636,7 @@ static FLAC__bool chain_read_(FLAC__Metadata_Chain *chain, const char *filename,
 
 	chain_clear_(chain);
 
-	if (0 == (chain->filename = strdup(filename)))
+	if (0 == (chain->filename = flac_strdup(filename)))
 	{
 		chain->status = FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR;
 		return false;
@@ -1646,7 +1644,7 @@ static FLAC__bool chain_read_(FLAC__Metadata_Chain *chain, const char *filename,
 
 	chain->is_ogg = is_ogg;
 
-	if (false == flac_fopen(file, filename, enFlacFopenModeRead)))
+	if (false == flac_fopen(file, filename, enFlacFopenModeRead))
 	{
 		chain->status = FLAC__METADATA_CHAIN_STATUS_ERROR_OPENING_FILE;
 		return false;
@@ -3255,12 +3253,11 @@ uint32_t seek_to_first_metadata_block_cb_(FLAC__IOHandle handle, FLAC__IOCallbac
 	FLAC__ASSERT(FLAC__STREAM_SYNC_LENGTH == sizeof(buffer));
 
 	/* skip any id3v2 tag */
-	errno = 0;
 	n = read_cb(buffer, 1, 4, handle);
-	if (errno)
-		return 1;
-	else if (n != 4)
+	if (n != 4)
+	{
 		return 3;
+	}
 	else if (0 == memcmp(buffer, "ID3", 3))
 	{
 		uint32_t tag_length = 0;
@@ -3283,19 +3280,22 @@ uint32_t seek_to_first_metadata_block_cb_(FLAC__IOHandle handle, FLAC__IOCallbac
 			return 2;
 
 		/* read the stream sync code */
-		errno = 0;
 		n = read_cb(buffer, 1, 4, handle);
-		if (errno)
-			return 1;
-		else if (n != 4)
+		if (n != 4)
+		{
 			return 3;
+		}
 	}
 
 	/* check for the fLaC signature */
 	if (0 == memcmp(FLAC__STREAM_SYNC_STRING, buffer, FLAC__STREAM_SYNC_LENGTH))
+	{
 		return 0;
+	}
 	else
+	{
 		return 3;
+	}
 }
 
 uint32_t seek_to_first_metadata_block_(FLAC_FILE *f)
@@ -3571,7 +3571,7 @@ FLAC__bool open_tempfile_(const char *filename, const char *tempfile_path_prefix
 		local_snprintf(*tempfilename, dest_len, "%s/%s%s", tempfile_path_prefix, p, tempfile_suffix);
 	}
 
-	if (false == flac_fopen(tempfile, *tempfilename, enFlacFopenModeWrite)))
+	if (false == flac_fopen(tempfile, *tempfilename, enFlacFopenModeWrite))
 	{
 		*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ERROR_OPENING_FILE;
 		return false;

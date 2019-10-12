@@ -15,6 +15,7 @@
 		],
 		"C_Cpp.default.defines": [
 			"BUILD_TEST",
+			"NDEBUG"
 		],
 	}
 }

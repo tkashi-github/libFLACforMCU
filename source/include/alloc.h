@@ -29,13 +29,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-#ifndef FLAC__SHARE__ALLOC_H
-#define FLAC__SHARE__ALLOC_H
-
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#pragma once
 
 /* WATCHOUT: for c++ you may have to #define __STDC_LIMIT_MACROS 1 real early
  * before #including this file,  otherwise SIZE_MAX might not be defined
@@ -211,5 +205,3 @@ static inline void *safe_realloc_muladd2_(void *ptr, uint32_t size1, uint32_t si
 		return 0;
 	return safe_realloc_mul_2op_(ptr, size1, size2);
 }
-
-#endif

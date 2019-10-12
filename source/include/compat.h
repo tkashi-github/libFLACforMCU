@@ -54,6 +54,7 @@ extern "C" {
 #define FLAC_ENV_EMBEDDED
 #else
 #include <stdio.h>
+#include <stdlib.h>
 #define flac_printf printf
 #endif
 
@@ -69,6 +70,8 @@ extern "C" {
 #define FLAC__off_t off_t
 #define FLAC__U64L(x) x##ULL
 #include <strings.h>
+#include <sys/stat.h>
+
 #define FLAC__STRCASECMP strcasecmp
 #define FLAC__STRNCASECMP strncasecmp
 
@@ -104,21 +107,21 @@ typedef FIL FLAC_FILE;
 #define flac_unlink unlink
 #define flac_rename rename
 #define flac_stat stat
-
+#define flac_ftello ftell
 typedef FILE FLAC_FILE;
 
 #else
 #error "Unkown Filesystem"
 #endif
 
-typdef enum{
+typedef enum{
 	enFlacFopenModeOpen,
 	enFlacFopenModeOpenAdd,
     enFlacFopenModeRead,
     enFlacFopenModeWrite,
 }enLFlacFopenMode_t;
 
-extern _Bool flac_fopen(FLAC_FILE* fp, const TCHAR path[], enLFlacFopenMode_t enMode);
+extern _Bool flac_fopen(FLAC_FILE* fp, const char path[], enLFlacFopenMode_t enMode);
 extern uint32_t flac_fwrite(const void *buf, uint32_t size, uint32_t n, FLAC_FILE *fp);
 extern uint32_t flac_fread(void *buf, uint32_t size, uint32_t n, FLAC_FILE *fp);
 extern int flac_chmod(const char szFilePath[], int mode);
@@ -182,24 +185,80 @@ static inline void *FlacSysRealloc(void *ptrOld, uint32_t size, const char pszFu
 #define FLAC_REALLOC(x,y) realloc(x,y)
 #endif
 
+#ifndef BUILD_TEST
 extern void AddMallocInfo(uintptr_t addr, uint32_t u32size, char *psz, uint32_t u32Line);
 extern void DelMallocInfo(uintptr_t addr);
 extern void DumpMallocInfo(void);
+#endif
 
+static inline uint32_t flac_strlen(const char pszStr[])
+{
+	/*-- var --*/
+	uint32_t u32Cnt = 0u;
 
+	/*-- begin --*/
+	if (pszStr != (const char *)NULL)
+	{
+		while (pszStr[u32Cnt] != '\0')
+		{
+			u32Cnt++;
+		}
+	}
+	return u32Cnt;
+}
+static inline char *flac_strcpy(char szDst[], const char szSrc[])
+{
+	/*-- var --*/
+	uint32_t i = 0u;
+
+	/*-- begin --*/
+	if ((szDst != (char *)NULL) && (szSrc != (const char *)NULL))
+	{
+		i = 0u;
+		while (szSrc[i] != (char)'\0')
+		{
+			szDst[i] = szSrc[i];
+			i++;
+		}
+	}
+
+	return szDst;
+}
+static inline char *flac_strncpy(char szDst[], const char szSrc[], uint32_t u32MaxSizeOfSrc)
+{
+	/*-- var --*/
+	uint32_t i = 0u;
+
+	/*-- begin --*/
+	if ((szDst != (char *)NULL) && (szSrc != (const char *)NULL))
+	{
+		i = 0u;
+		while (szSrc[i] != (char)'\0')
+		{
+			szDst[i] = szSrc[i];
+			i++;
+			if(i >= u32MaxSizeOfSrc)
+			{
+				break;
+			}
+		}
+	}
+
+	return szDst;
+}
 static inline char *flac_strdup(const char szStr[]){
 	char *pret = NULL;
 	if(szStr != NULL){
-		pret = FLAC_MALLOC(strlen(szStr) + 1);
+		pret = FLAC_MALLOC(flac_strlen(szStr) + 1);
 		if(pret != NULL){
-			strcpy(pret, szStr);
+			flac_strcpy(pret, szStr);
 		}
 	}
 
 	return pret;
 }
 
-static inline _Bool flac_memcpy(void * p1, void * p2, uint32_t u32ByteCnt)
+static inline _Bool flac_memcpy(void * p1, const void * p2, uint32_t u32ByteCnt)
 {
 	/*-- var --*/
 	uint8_t *pu81 = (uint8_t *)p1;
@@ -207,7 +266,7 @@ static inline _Bool flac_memcpy(void * p1, void * p2, uint32_t u32ByteCnt)
 	_Bool bret = false;
 
 	/*-- begin --*/
-	if ((p1 != (uintptr_t)NULL) && (p2 != (uintptr_t)NULL))
+	if ((p1 != NULL) && (p2 != NULL))
 	{
 		for (uint32_t i = 0u; i < u32ByteCnt; i++)
 		{
@@ -225,7 +284,7 @@ static inline _Bool flac_memset(void * p1, uint8_t val, uint32_t u32ByteCnt)
 	_Bool bret = false;
 
 	/*-- begin --*/
-	if (p1 != (uintptr_t)NULL)
+	if (p1 != NULL)
 	{
 		for (uint32_t i = 0u; i < u32ByteCnt; i++)
 		{
@@ -235,6 +294,81 @@ static inline _Bool flac_memset(void * p1, uint8_t val, uint32_t u32ByteCnt)
 	}
 	return bret;
 }
+
+char *flac_strncat(char pszStr1[], const char pszStr2[], uint32_t u32SizeOfStr2)
+{
+	uint32_t u32Pos = 0;
+	uint32_t u32Index = 0;
+
+	if ((pszStr1 == NULL) || (pszStr2 == 0))
+	{
+		return NULL;
+	}
+	while (pszStr1[u32Pos] != '\0')
+	{
+		u32Pos++;
+	}
+
+	while (pszStr2[u32Index] != '\0')
+	{
+		pszStr1[u32Pos] = pszStr2[u32Index];
+		u32Pos++;
+		u32Index++;
+		if(u32Index >= u32SizeOfStr2)
+		{
+			pszStr1[u32Pos] = '\0';
+		}
+	}
+
+	return pszStr1;
+}
+
+static inline int32_t flac_strcmp(const char szStr1[], const char szStr2[])
+{
+	for (uint32_t u32Cnt = 0u; ; u32Cnt++)
+	{
+		if (szStr1[u32Cnt] < szStr2[u32Cnt])
+		{
+			return -1;
+		}
+		if (szStr1[u32Cnt] > szStr2[u32Cnt])
+		{
+			return 1;
+		}
+		if ((szStr1[u32Cnt] == '\0') && (szStr2[u32Cnt] == '\0'))
+		{
+			return 0;
+		}
+	}
+}
+
+static inline char *safe_strncat(char *dest, const char *src, size_t dest_size)
+{
+	char * ret;
+
+	if (dest_size < 1)
+		return dest;
+
+	ret = flac_strncat(dest, src, dest_size - flac_strlen (dest));
+	dest [dest_size - 1] = 0;
+
+	return ret;
+}
+
+static inline char *safe_strncpy(char *dest, const char *src, size_t dest_size)
+{
+	char * ret;
+
+	if (dest_size < 1)
+		return dest;
+
+	ret = flac_strncpy(dest, src, dest_size);
+	dest [dest_size - 1] = 0;
+
+	return ret;
+}
+
+
 
 #ifdef __cplusplus
 };

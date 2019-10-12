@@ -109,7 +109,7 @@ static FLAC__bool ensure_null_terminated_(FLAC__byte **entry, uint32_t length)
  */
 static FLAC__bool copy_cstring_(char **to, const char *from)
 {
-	char *copy = strdup(from);
+	char *copy = flac_strdup(from);
 	FLAC__ASSERT(to != NULL);
 	if (copy)
 	{
