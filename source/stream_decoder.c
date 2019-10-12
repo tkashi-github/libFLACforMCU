@@ -3560,7 +3560,7 @@ FLAC__StreamDecoderTellStatus file_tell_callback_(const FLAC__StreamDecoder *dec
 
 	if (decoder->private_->file == stdin)
 		return FLAC__STREAM_DECODER_TELL_STATUS_UNSUPPORTED;
-	else if ((pos = ftello(decoder->private_->file)) < 0)
+	else if ((pos = flac_ftello(decoder->private_->file)) < 0)
 		return FLAC__STREAM_DECODER_TELL_STATUS_ERROR;
 	else
 	{

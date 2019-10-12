@@ -613,7 +613,7 @@ typedef FLAC__StreamEncoderSeekStatus (*FLAC__StreamEncoderSeekCallback)(const F
  *   off_t pos;
  *   if(file == stdin)
  *     return FLAC__STREAM_ENCODER_TELL_STATUS_UNSUPPORTED;
- *   else if((pos = ftello(file)) < 0)
+ *   else if((pos = flac_ftello(file)) < 0)
  *     return FLAC__STREAM_ENCODER_TELL_STATUS_ERROR;
  *   else {
  *     *absolute_byte_offset = (FLAC__uint64)pos;

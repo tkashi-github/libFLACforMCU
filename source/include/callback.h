@@ -72,7 +72,7 @@
  *  is required.  \warning You generally CANNOT directly use fseek or ftell
  *  for FLAC__IOCallback_Seek or FLAC__IOCallback_Tell since on most systems
  *  these use 32-bit offsets and FLAC requires 64-bit offsets to deal with
- *  large files.  You will have to find an equivalent function (e.g. ftello),
+ *  large files.  You will have to find an equivalent function (e.g. flac_ftello),
  *  or write a wrapper.  The same is true for feof() since this is usually
  *  implemented as a macro, not as a function whose address can be taken.
  *

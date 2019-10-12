@@ -567,7 +567,7 @@ typedef FLAC__StreamDecoderSeekStatus (*FLAC__StreamDecoderSeekCallback)(const F
  *   off_t pos;
  *   if(file == stdin)
  *     return FLAC__STREAM_DECODER_TELL_STATUS_UNSUPPORTED;
- *   else if((pos = ftello(file)) < 0)
+ *   else if((pos = flac_ftello(file)) < 0)
  *     return FLAC__STREAM_DECODER_TELL_STATUS_ERROR;
  *   else {
  *     *absolute_byte_offset = (FLAC__uint64)pos;

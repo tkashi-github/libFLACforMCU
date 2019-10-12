@@ -44,17 +44,24 @@
 #error /** Only C11 */
 #endif
 
+#pragma once
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifndef BUILD_TEST
+#include "mimiclib.h"
+#define flac_printf mimic_printf
 #define FLAC_ENV_EMBEDDED
+#else
+#include <stdio.h>
+#define flac_printf printf
+#endif
 
 #if defined(FLAC_ENV_EMBEDDED)
 #define USE_MIMICLIB
 #define USE_FAT_FS
 #endif
 
-#pragma once
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include <stdint.h>
 #include <stdbool.h>
 #include <unistd.h>
@@ -77,8 +84,7 @@ extern "C" {
 #define M_PI 3.14159265358979323846
 #endif
 
-#include "mimiclib.h"
-#define flac_printf mimic_printf
+
 
 #include <stdarg.h>
 
@@ -92,6 +98,15 @@ extern "C" {
 #define flac_stat f_stat
 #define flac_ftello f_tell
 typedef FIL FLAC_FILE;
+#elif defined(BUILD_TEST)
+#include <stdio.h>
+#define flac_utime utime
+#define flac_unlink unlink
+#define flac_rename rename
+#define flac_stat stat
+
+typedef FILE FLAC_FILE;
+
 #else
 #error "Unkown Filesystem"
 #endif
@@ -111,7 +126,7 @@ extern int flac_fseeko(FLAC_FILE *fp, int32_t offset, int32_t whence);
 
 
 
-
+#ifndef BUILD_TEST
 extern void *pvlibTCMMalloc( uint32_t xWantedSize );
 extern void vlibTCMPortFree( void *pv );
 extern uint32_t xlibSYSPortGetFreeHeapSize( void );
@@ -119,11 +134,6 @@ extern uint32_t xlibSYSPortGetFreeHeapSize( void );
 #define FLAC_MALLOC(x) FlacSysMalloc((x), __FUNCTION__, __LINE__)
 #define FLAC_CALLOC(x,y) FlacSysCalloc((x),(y), __FUNCTION__, __LINE__)
 #define FLAC_REALLOC(x,y) FlacSysRealloc((x),(y), __FUNCTION__, __LINE__)
-
-
-extern void AddMallocInfo(uintptr_t addr, uint32_t u32size, char *psz, uint32_t u32Line);
-extern void DelMallocInfo(uintptr_t addr);
-extern void DumpMallocInfo(void);
 
 static inline void *FlacSysMalloc(uint32_t xWantedSize, const char pszFunc[], uint32_t u32Line){
 	
@@ -165,11 +175,22 @@ static inline void *FlacSysRealloc(void *ptrOld, uint32_t size, const char pszFu
 
 	return ptrNew;
 }
+#else
+#define FLAC_FREE(x) free(x)
+#define FLAC_MALLOC(x) malloc(x)
+#define FLAC_CALLOC(x,y) calloc(x,y)
+#define FLAC_REALLOC(x,y) realloc(x,y)
+#endif
+
+extern void AddMallocInfo(uintptr_t addr, uint32_t u32size, char *psz, uint32_t u32Line);
+extern void DelMallocInfo(uintptr_t addr);
+extern void DumpMallocInfo(void);
+
 
 static inline char *flac_strdup(const char szStr[]){
 	char *pret = NULL;
 	if(szStr != NULL){
-		pret = pvlibSYSMalloc(strlen(szStr) + 1);
+		pret = FLAC_MALLOC(strlen(szStr) + 1);
 		if(pret != NULL){
 			strcpy(pret, szStr);
 		}

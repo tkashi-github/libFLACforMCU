@@ -4456,7 +4456,7 @@ FLAC__StreamEncoderTellStatus file_tell_callback_(const FLAC__StreamEncoder *enc
 
 	(void)client_data;
 
-	offset = ftello(encoder->private_->file);
+	offset = flac_ftello(encoder->private_->file);
 
 	if(offset < 0) {
 		return FLAC__STREAM_ENCODER_TELL_STATUS_ERROR;
