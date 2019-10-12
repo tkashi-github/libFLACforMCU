@@ -118,17 +118,7 @@ static FLAC__int64 ftell_wrapper_(FLAC__IOHandle handle);
 
 static FLAC__Metadata_ChainStatus get_equivalent_status_(FLAC__Metadata_SimpleIteratorStatus status);
 
-#ifdef FLAC__VALGRIND_TESTING
-static size_t local__fwrite(const void *ptr, size_t size, size_t nmemb, FLAC_FILE *stream)
-{
-	size_t ret = fwrite(ptr, size, nmemb, stream);
-	if (!ferror(stream))
-		fflush(stream);
-	return ret;
-}
-#else
-#define local__fwrite fwrite
-#endif
+
 
 /****************************************************************************
  *
@@ -527,7 +517,7 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_next(FLAC__Metadata_SimpleIte
 	if (iterator->is_last)
 		return false;
 
-	if (0 != fseeko(iterator->file, iterator->length, SEEK_CUR))
+	if (0 != flac_fseeko(iterator->file, iterator->length, SEEK_CUR))
 	{
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR;
 		return false;
@@ -548,7 +538,7 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_prev(FLAC__Metadata_SimpleIte
 	if (iterator->offset[iterator->depth] == iterator->first_offset)
 		return false;
 
-	if (0 != fseeko(iterator->file, iterator->first_offset, SEEK_SET))
+	if (0 != flac_fseeko(iterator->file, iterator->first_offset, SEEK_SET))
 	{
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR;
 		return false;
@@ -557,10 +547,10 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_prev(FLAC__Metadata_SimpleIte
 	if (!read_metadata_block_header_(iterator))
 		return false;
 
-	/* we ignore any error from ftello() and catch it in fseeko() */
+	/* we ignore any error from ftello() and catch it in flac_fseeko() */
 	while (ftello(iterator->file) + (FLAC__off_t)iterator->length < iterator->offset[iterator->depth])
 	{
-		if (0 != fseeko(iterator->file, iterator->length, SEEK_CUR))
+		if (0 != flac_fseeko(iterator->file, iterator->length, SEEK_CUR))
 		{
 			iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR;
 			return false;
@@ -625,14 +615,14 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_get_application_id(FLAC__Meta
 		return false;
 	}
 
-	if (fread(id, 1, id_bytes, iterator->file) != id_bytes)
+	if (flac_fread(id, 1, id_bytes, iterator->file) != id_bytes)
 	{
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
 		return false;
 	}
 
 	/* back up */
-	if (0 != fseeko(iterator->file, -((int)id_bytes), SEEK_CUR))
+	if (0 != flac_fseeko(iterator->file, -((int)id_bytes), SEEK_CUR))
 	{
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR;
 		return false;
@@ -660,7 +650,7 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_simple_iterator_get_block(FLAC__Me
 		}
 
 		/* back up to the beginning of the block data to stay consistent */
-		if (0 != fseeko(iterator->file, iterator->offset[iterator->depth] + FLAC__STREAM_METADATA_HEADER_LENGTH, SEEK_SET))
+		if (0 != flac_fseeko(iterator->file, iterator->offset[iterator->depth] + FLAC__STREAM_METADATA_HEADER_LENGTH, SEEK_SET))
 		{
 			iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR;
 			FLAC__metadata_object_delete(block);
@@ -1486,7 +1476,7 @@ static FLAC__bool chain_rewrite_metadata_in_place_(FLAC__Metadata_Chain *chain)
 	}
 
 	/* chain_rewrite_metadata_in_place_cb_() sets chain->status for us */
-	ret = chain_rewrite_metadata_in_place_cb_(chain, (FLAC__IOHandle)file, (FLAC__IOCallback_Write)fwrite, fseek_wrapper_);
+	ret = chain_rewrite_metadata_in_place_cb_(chain, (FLAC__IOHandle)file, (FLAC__IOCallback_Write)flac_fwrite, fseek_wrapper_);
 
 	fclose(file);
 
@@ -1538,7 +1528,7 @@ static FLAC__bool chain_rewrite_file_(FLAC__Metadata_Chain *chain, const char *t
 	/*FLAC__ASSERT(fflush(), ftello() == chain->last_offset);*/
 
 	/* copy the file postfix (everything after the metadata) */
-	if (0 != fseeko(f, chain->last_offset, SEEK_SET))
+	if (0 != flac_fseeko(f, chain->last_offset, SEEK_SET))
 	{
 		chain->status = FLAC__METADATA_CHAIN_STATUS_SEEK_ERROR;
 		goto err;
@@ -1665,7 +1655,7 @@ static FLAC__bool chain_read_(FLAC__Metadata_Chain *chain, const char *filename,
 	}
 
 	/* the function also sets chain->status for us */
-	ret = is_ogg ? chain_read_ogg_cb_(chain, file, (FLAC__IOCallback_Read)fread) : chain_read_cb_(chain, file, (FLAC__IOCallback_Read)fread, fseek_wrapper_, ftell_wrapper_);
+	ret = is_ogg ? chain_read_ogg_cb_(chain, file, (FLAC__IOCallback_Read)flac_fread) : chain_read_cb_(chain, file, (FLAC__IOCallback_Read)flac_fread, fseek_wrapper_, ftell_wrapper_);
 
 	fclose(file);
 
@@ -2255,7 +2245,7 @@ FLAC__bool read_metadata_block_header_(FLAC__Metadata_SimpleIterator *iterator)
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
 
-	if (!read_metadata_block_header_cb_((FLAC__IOHandle)iterator->file, (FLAC__IOCallback_Read)fread, &iterator->is_last, &iterator->type, &iterator->length))
+	if (!read_metadata_block_header_cb_((FLAC__IOHandle)iterator->file, (FLAC__IOCallback_Read)flac_fread, &iterator->is_last, &iterator->type, &iterator->length))
 	{
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
 		return false;
@@ -2269,7 +2259,7 @@ FLAC__bool read_metadata_block_data_(FLAC__Metadata_SimpleIterator *iterator, FL
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
 
-	iterator->status = read_metadata_block_data_cb_((FLAC__IOHandle)iterator->file, (FLAC__IOCallback_Read)fread, fseek_wrapper_, block);
+	iterator->status = read_metadata_block_data_cb_((FLAC__IOHandle)iterator->file, (FLAC__IOCallback_Read)flac_fread, fseek_wrapper_, block);
 
 	return (iterator->status == FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK);
 }
@@ -2374,7 +2364,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_application_cb_(FLA
 	}
 	else
 	{
-		if (0 == (block->data = malloc(block_length)))
+		if (0 == (block->data = FLAC_MALLOC(block_length)))
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 
 		if (read_cb(block->data, 1, block_length, handle) != block_length)
@@ -2730,7 +2720,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_unknown_cb_(FLAC__I
 	}
 	else
 	{
-		if (0 == (block->data = malloc(block_length)))
+		if (0 == (block->data = FLAC_MALLOC(block_length)))
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 
 		if (read_cb(block->data, 1, block_length, handle) != block_length)
@@ -2745,7 +2735,7 @@ FLAC__bool write_metadata_block_header_(FLAC_FILE *file, FLAC__Metadata_SimpleIt
 	FLAC__ASSERT(0 != file);
 	FLAC__ASSERT(0 != status);
 
-	if (!write_metadata_block_header_cb_((FLAC__IOHandle)file, (FLAC__IOCallback_Write)fwrite, block))
+	if (!write_metadata_block_header_cb_((FLAC__IOHandle)file, (FLAC__IOCallback_Write)flac_fwrite, block))
 	{
 		*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 		return false;
@@ -2759,7 +2749,7 @@ FLAC__bool write_metadata_block_data_(FLAC_FILE *file, FLAC__Metadata_SimpleIter
 	FLAC__ASSERT(0 != file);
 	FLAC__ASSERT(0 != status);
 
-	if (write_metadata_block_data_cb_((FLAC__IOHandle)file, (FLAC__IOCallback_Write)fwrite, block))
+	if (write_metadata_block_data_cb_((FLAC__IOHandle)file, (FLAC__IOCallback_Write)flac_fwrite, block))
 	{
 		*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
 		return true;
@@ -3106,7 +3096,7 @@ FLAC__bool write_metadata_block_data_unknown_cb_(FLAC__IOHandle handle, FLAC__IO
 
 FLAC__bool write_metadata_block_stationary_(FLAC__Metadata_SimpleIterator *iterator, const FLAC__StreamMetadata *block)
 {
-	if (0 != fseeko(iterator->file, iterator->offset[iterator->depth], SEEK_SET))
+	if (0 != flac_fseeko(iterator->file, iterator->offset[iterator->depth], SEEK_SET))
 	{
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR;
 		return false;
@@ -3118,7 +3108,7 @@ FLAC__bool write_metadata_block_stationary_(FLAC__Metadata_SimpleIterator *itera
 	if (!write_metadata_block_data_(iterator->file, &iterator->status, block))
 		return false;
 
-	if (0 != fseeko(iterator->file, iterator->offset[iterator->depth], SEEK_SET))
+	if (0 != flac_fseeko(iterator->file, iterator->offset[iterator->depth], SEEK_SET))
 	{
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR;
 		return false;
@@ -3131,7 +3121,7 @@ FLAC__bool write_metadata_block_stationary_with_padding_(FLAC__Metadata_SimpleIt
 {
 	FLAC__StreamMetadata *padding;
 
-	if (0 != fseeko(iterator->file, iterator->offset[iterator->depth], SEEK_SET))
+	if (0 != flac_fseeko(iterator->file, iterator->offset[iterator->depth], SEEK_SET))
 	{
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR;
 		return false;
@@ -3165,7 +3155,7 @@ FLAC__bool write_metadata_block_stationary_with_padding_(FLAC__Metadata_SimpleIt
 
 	FLAC__metadata_object_delete(padding);
 
-	if (0 != fseeko(iterator->file, iterator->offset[iterator->depth], SEEK_SET))
+	if (0 != flac_fseeko(iterator->file, iterator->offset[iterator->depth], SEEK_SET))
 	{
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR;
 		return false;
@@ -3243,7 +3233,7 @@ FLAC__bool simple_iterator_pop_(FLAC__Metadata_SimpleIterator *iterator)
 {
 	FLAC__ASSERT(iterator->depth > 0);
 	iterator->depth--;
-	if (0 != fseeko(iterator->file, iterator->offset[iterator->depth], SEEK_SET))
+	if (0 != flac_fseeko(iterator->file, iterator->offset[iterator->depth], SEEK_SET))
 	{
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR;
 		return false;
@@ -3319,7 +3309,7 @@ FLAC__bool simple_iterator_copy_file_prefix_(FLAC__Metadata_SimpleIterator *iter
 {
 	const FLAC__off_t offset_end = append ? iterator->offset[iterator->depth] + (FLAC__off_t)FLAC__STREAM_METADATA_HEADER_LENGTH + (FLAC__off_t)iterator->length : iterator->offset[iterator->depth];
 
-	if (0 != fseeko(iterator->file, 0, SEEK_SET))
+	if (0 != flac_fseeko(iterator->file, 0, SEEK_SET))
 	{
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR;
 		return false;
@@ -3343,7 +3333,7 @@ FLAC__bool simple_iterator_copy_file_postfix_(FLAC__Metadata_SimpleIterator *ite
 	FLAC__off_t save_offset = iterator->offset[iterator->depth];
 	FLAC__ASSERT(0 != *tempfile);
 
-	if (0 != fseeko(iterator->file, save_offset + (FLAC__off_t)FLAC__STREAM_METADATA_HEADER_LENGTH + (FLAC__off_t)iterator->length, SEEK_SET))
+	if (0 != flac_fseeko(iterator->file, save_offset + (FLAC__off_t)FLAC__STREAM_METADATA_HEADER_LENGTH + (FLAC__off_t)iterator->length, SEEK_SET))
 	{
 		cleanup_tempfile_(tempfile, tempfilename);
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR;
@@ -3365,13 +3355,13 @@ FLAC__bool simple_iterator_copy_file_postfix_(FLAC__Metadata_SimpleIterator *ite
 		 */
 		/* MAGIC NUMBERs here; we know the is_last flag is the high bit of the byte at this location */
 		FLAC__byte x;
-		if (0 != fseeko(*tempfile, fixup_is_last_flag_offset, SEEK_SET))
+		if (0 != flac_fseeko(*tempfile, fixup_is_last_flag_offset, SEEK_SET))
 		{
 			cleanup_tempfile_(tempfile, tempfilename);
 			iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR;
 			return false;
 		}
-		if (fread(&x, 1, 1, *tempfile) != 1)
+		if (flac_fread(&x, 1, 1, *tempfile) != 1)
 		{
 			cleanup_tempfile_(tempfile, tempfilename);
 			iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
@@ -3387,13 +3377,13 @@ FLAC__bool simple_iterator_copy_file_postfix_(FLAC__Metadata_SimpleIterator *ite
 			FLAC__ASSERT(!(x & 0x80));
 			x |= 0x80;
 		}
-		if (0 != fseeko(*tempfile, fixup_is_last_flag_offset, SEEK_SET))
+		if (0 != flac_fseeko(*tempfile, fixup_is_last_flag_offset, SEEK_SET))
 		{
 			cleanup_tempfile_(tempfile, tempfilename);
 			iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR;
 			return false;
 		}
-		if (local__fwrite(&x, 1, 1, *tempfile) != 1)
+		if (flac_fwrite(&x, 1, 1, *tempfile) != 1)
 		{
 			cleanup_tempfile_(tempfile, tempfilename);
 			iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
@@ -3437,12 +3427,12 @@ FLAC__bool copy_n_bytes_from_file_(FLAC_FILE *file, FLAC_FILE *tempfile, FLAC__o
 	while (bytes > 0)
 	{
 		n = flac_min(sizeof(buffer), (size_t)bytes);
-		if (fread(buffer, 1, n, file) != n)
+		if (flac_fread(buffer, 1, n, file) != n)
 		{
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
 			return false;
 		}
-		if (local__fwrite(buffer, 1, n, tempfile) != n)
+		if (flac_fwrite(buffer, 1, n, tempfile) != n)
 		{
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 			return false;
@@ -3485,13 +3475,13 @@ FLAC__bool copy_remaining_bytes_from_file_(FLAC_FILE *file, FLAC_FILE *tempfile,
 
 	while (!feof(file))
 	{
-		n = fread(buffer, 1, sizeof(buffer), file);
+		n = flac_fread(buffer, 1, sizeof(buffer), file);
 		if (n == 0 && !feof(file))
 		{
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
 			return false;
 		}
-		if (n > 0 && local__fwrite(buffer, 1, n, tempfile) != n)
+		if (n > 0 && flac_fwrite(buffer, 1, n, tempfile) != n)
 		{
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 			return false;
@@ -3669,7 +3659,7 @@ void set_file_stats_(const char *filename, struct flac_stat_s *stats)
 
 int fseek_wrapper_(FLAC__IOHandle handle, FLAC__int64 offset, int whence)
 {
-	return fseeko((FLAC_FILE *)handle, (FLAC__off_t)offset, whence);
+	return flac_fseeko((FLAC_FILE *)handle, (FLAC__off_t)offset, whence);
 }
 
 FLAC__int64 ftell_wrapper_(FLAC__IOHandle handle)

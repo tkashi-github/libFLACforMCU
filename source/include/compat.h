@@ -178,7 +178,42 @@ static inline char *flac_strdup(const char szStr[]){
 	return pret;
 }
 
+static inline _Bool flac_memcpy(uintptr_t p1, uintptr_t p2, uint32_t u32ByteCnt)
+{
+	/*-- var --*/
+	uint8_t *pu81 = (uint8_t *)p1;
+	uint8_t *pu82 = (uint8_t *)p2;
+	_Bool bret = false;
 
+	/*-- begin --*/
+	if ((p1 != (uintptr_t)NULL) && (p2 != (uintptr_t)NULL))
+	{
+		for (uint32_t i = 0u; i < u32ByteCnt; i++)
+		{
+			pu81[i] = pu82[i];
+		}
+		bret = true;
+	}
+	return bret;
+}
+
+static inline _Bool flac_memset(uintptr_t p1, uint8_t val, uint32_t u32ByteCnt)
+{
+	/*-- var --*/
+	uint8_t *pu81 = (uint8_t *)p1;
+	_Bool bret = false;
+
+	/*-- begin --*/
+	if (p1 != (uintptr_t)NULL)
+	{
+		for (uint32_t i = 0u; i < u32ByteCnt; i++)
+		{
+			pu81[i] = val;
+		}
+		bret = true;
+	}
+	return bret;
+}
 
 #ifdef __cplusplus
 };

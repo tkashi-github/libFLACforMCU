@@ -71,13 +71,13 @@ static inline void *safe_malloc_(size_t size)
 	/* malloc(0) is undefined; FLAC src convention is to always allocate */
 	if(!size)
 		size++;
-	return malloc(size);
+	return FLAC_MALLOC(size);
 }
 
 static inline void *safe_calloc_(size_t nmemb, size_t size)
 {
 	if(!nmemb || !size)
-		return malloc(1); /* malloc(0) is undefined; FLAC src convention is to always allocate */
+		return FLAC_MALLOC(1); /* malloc(0) is undefined; FLAC src convention is to always allocate */
 	return calloc(nmemb, size);
 }
 
@@ -121,13 +121,13 @@ void *safe_malloc_mul_2op_(size_t size1, size_t size2) ;
 static inline void *safe_malloc_mul_3op_(size_t size1, size_t size2, size_t size3)
 {
 	if(!size1 || !size2 || !size3)
-		return malloc(1); /* malloc(0) is undefined; FLAC src convention is to always allocate */
+		return FLAC_MALLOC(1); /* malloc(0) is undefined; FLAC src convention is to always allocate */
 	if(size1 > SIZE_MAX / size2)
 		return 0;
 	size1 *= size2;
 	if(size1 > SIZE_MAX / size3)
 		return 0;
-	return malloc(size1*size3);
+	return FLAC_MALLOC(size1*size3);
 }
 
 /* size1*size2 + size3 */
@@ -144,13 +144,13 @@ static inline void *safe_malloc_mul2add_(size_t size1, size_t size2, size_t size
 static inline void *safe_malloc_muladd2_(size_t size1, size_t size2, size_t size3)
 {
 	if(!size1 || (!size2 && !size3))
-		return malloc(1); /* malloc(0) is undefined; FLAC src convention is to always allocate */
+		return FLAC_MALLOC(1); /* malloc(0) is undefined; FLAC src convention is to always allocate */
 	size2 += size3;
 	if(size2 < size3)
 		return 0;
 	if(size1 > SIZE_MAX / size2)
 		return 0;
-	return malloc(size1*size2);
+	return FLAC_MALLOC(size1*size2);
 }
 
 static inline void *safe_realloc_(void *ptr, size_t size)

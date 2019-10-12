@@ -4430,7 +4430,7 @@ FLAC__StreamEncoderReadStatus file_read_callback_(const FLAC__StreamEncoder *enc
 {
 	(void)client_data;
 
-	*bytes = fread(buffer, 1, *bytes, encoder->private_->file);
+	*bytes = flac_fread(buffer, 1, *bytes, encoder->private_->file);
 	if (*bytes == 0) {
 		if (feof(encoder->private_->file))
 			return FLAC__STREAM_ENCODER_READ_STATUS_END_OF_STREAM;
@@ -4444,7 +4444,7 @@ FLAC__StreamEncoderSeekStatus file_seek_callback_(const FLAC__StreamEncoder *enc
 {
 	(void)client_data;
 
-	if(fseeko(encoder->private_->file, (FLAC__off_t)absolute_byte_offset, SEEK_SET) < 0)
+	if(flac_fseeko(encoder->private_->file, (FLAC__off_t)absolute_byte_offset, SEEK_SET) < 0)
 		return FLAC__STREAM_ENCODER_SEEK_STATUS_ERROR;
 	else
 		return FLAC__STREAM_ENCODER_SEEK_STATUS_OK;
@@ -4467,23 +4467,12 @@ FLAC__StreamEncoderTellStatus file_tell_callback_(const FLAC__StreamEncoder *enc
 	}
 }
 
-#ifdef FLAC__VALGRIND_TESTING
-static size_t local__fwrite(const void *ptr, size_t size, size_t nmemb, FLAC_FILE *stream)
-{
-	size_t ret = fwrite(ptr, size, nmemb, stream);
-	if(!ferror(stream))
-		fflush(stream);
-	return ret;
-}
-#else
-#define local__fwrite fwrite
-#endif
 
 FLAC__StreamEncoderWriteStatus file_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame, void *client_data)
 {
 	(void)client_data, (void)current_frame;
 
-	if(local__fwrite(buffer, sizeof(FLAC__byte), bytes, encoder->private_->file) == bytes) {
+	if(flac_fwrite(buffer, sizeof(FLAC__byte), bytes, encoder->private_->file) == bytes) {
 		FLAC__bool call_it = 0 != encoder->private_->progress_callback && (
 #if FLAC__HAS_OGG
 			/* We would like to be able to use 'samples > 0' in the

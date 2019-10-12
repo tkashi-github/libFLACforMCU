@@ -34,9 +34,6 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>	/* for malloc() */
-#include <string.h>	/* for memset/memcpy() */
 #include <sys/stat.h>  /* for stat() */
 #include <sys/types.h> /* for off_t */
 #include "include/compat.h"
@@ -267,7 +264,7 @@ FLAC_API FLAC__StreamDecoder *FLAC__stream_decoder_new(void)
 	}
 
 	decoder->private_->metadata_filter_ids_capacity = 16;
-	if (0 == (decoder->private_->metadata_filter_ids = malloc((FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8) * decoder->private_->metadata_filter_ids_capacity)))
+	if (0 == (decoder->private_->metadata_filter_ids = FLAC_MALLOC((FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8) * decoder->private_->metadata_filter_ids_capacity)))
 	{
 		FLAC__bitreader_delete(decoder->private_->input);
 		free(decoder->private_);
@@ -1499,7 +1496,7 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 				/* remember, we read the ID already */
 				if (real_length > 0)
 				{
-					if (0 == (block.data.application.data = malloc(real_length)))
+					if (0 == (block.data.application.data = FLAC_MALLOC(real_length)))
 					{
 						decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 						ok = false;
@@ -1529,7 +1526,7 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 			default:
 				if (real_length > 0)
 				{
-					if (0 == (block.data.unknown.data = malloc(real_length)))
+					if (0 == (block.data.unknown.data = FLAC_MALLOC(real_length)))
 					{
 						decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 						ok = false;
@@ -3532,7 +3529,7 @@ FLAC__StreamDecoderReadStatus file_read_callback_(const FLAC__StreamDecoder *dec
 
 	if (*bytes > 0)
 	{
-		*bytes = fread(buffer, sizeof(FLAC__byte), *bytes, decoder->private_->file);
+		*bytes = flac_fread(buffer, sizeof(FLAC__byte), *bytes, decoder->private_->file);
 		if (ferror(decoder->private_->file))
 			return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 		else if (*bytes == 0)
@@ -3550,7 +3547,7 @@ FLAC__StreamDecoderSeekStatus file_seek_callback_(const FLAC__StreamDecoder *dec
 
 	if (decoder->private_->file == stdin)
 		return FLAC__STREAM_DECODER_SEEK_STATUS_UNSUPPORTED;
-	else if (fseeko(decoder->private_->file, (FLAC__off_t)absolute_byte_offset, SEEK_SET) < 0)
+	else if (flac_fseeko(decoder->private_->file, (FLAC__off_t)absolute_byte_offset, SEEK_SET) < 0)
 		return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
 	else
 		return FLAC__STREAM_DECODER_SEEK_STATUS_OK;
