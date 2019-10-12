@@ -257,7 +257,7 @@ void FLAC__MD5Final(FLAC__byte digest[16], FLAC__MD5Context *ctx)
 	byteSwap(ctx->buf, 4);
 	flac_memcpy(digest, ctx->buf, 16);
 	if (0 != ctx->internal_buf.p8) {
-		free(ctx->internal_buf.p8);
+		FLAC_FREE(ctx->internal_buf.p8);
 		ctx->internal_buf.p8 = 0;
 		ctx->capacity = 0;
 	}

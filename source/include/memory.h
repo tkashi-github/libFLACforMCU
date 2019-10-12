@@ -43,7 +43,7 @@
 #include "include/ordinals.h" /* for FLAC__bool */
 
 /* Returns the unaligned address returned by malloc.
- * Use free() on this address to deallocate.
+ * Use FLAC_FREE() on this address to deallocate.
  */
 void *FLAC__memory_alloc_aligned(size_t bytes, void **aligned_address);
 FLAC__bool FLAC__memory_alloc_aligned_int32_array(size_t elements, FLAC__int32 **unaligned_pointer, FLAC__int32 **aligned_pointer);

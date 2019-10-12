@@ -78,7 +78,7 @@ static inline void *safe_calloc_(size_t nmemb, size_t size)
 {
 	if(!nmemb || !size)
 		return FLAC_MALLOC(1); /* malloc(0) is undefined; FLAC src convention is to always allocate */
-	return calloc(nmemb, size);
+	return FLAC_CALLOC(nmemb, size);
 }
 
 /*@@@@ there's probably a better way to prevent overflows when allocating untrusted sums but this works for now */
@@ -156,19 +156,19 @@ static inline void *safe_malloc_muladd2_(size_t size1, size_t size2, size_t size
 static inline void *safe_realloc_(void *ptr, size_t size)
 {
 	void *oldptr = ptr;
-	void *newptr = realloc(ptr, size);
+	void *newptr = FLAC_REALLOC(ptr, size);
 	if(size > 0 && newptr == 0)
-		free(oldptr);
+		FLAC_FREE(oldptr);
 	return newptr;
 }
 static inline void *safe_realloc_add_2op_(void *ptr, size_t size1, size_t size2)
 {
 	size2 += size1;
 	if(size2 < size1) {
-		free(ptr);
+		FLAC_FREE(ptr);
 		return 0;
 	}
-	return realloc(ptr, size2);
+	return FLAC_REALLOC(ptr, size2);
 }
 
 static inline void *safe_realloc_add_3op_(void *ptr, size_t size1, size_t size2, size_t size3)
@@ -179,7 +179,7 @@ static inline void *safe_realloc_add_3op_(void *ptr, size_t size1, size_t size2,
 	size3 += size2;
 	if(size3 < size2)
 		return 0;
-	return realloc(ptr, size3);
+	return FLAC_REALLOC(ptr, size3);
 }
 
 static inline void *safe_realloc_add_4op_(void *ptr, size_t size1, size_t size2, size_t size3, size_t size4)
@@ -193,13 +193,13 @@ static inline void *safe_realloc_add_4op_(void *ptr, size_t size1, size_t size2,
 	size4 += size3;
 	if(size4 < size3)
 		return 0;
-	return realloc(ptr, size4);
+	return FLAC_REALLOC(ptr, size4);
 }
 
 static inline void *safe_realloc_mul_2op_(void *ptr, size_t size1, size_t size2)
 {
 	if(!size1 || !size2)
-		return realloc(ptr, 0); /* preserve POSIX realloc(ptr, 0) semantics */
+		return FLAC_REALLOC(ptr, 0); /* preserve POSIX FLAC_REALLOC(ptr, 0) semantics */
 	if(size1 > SIZE_MAX / size2)
 		return 0;
 	return safe_realloc_(ptr, size1*size2);
@@ -209,7 +209,7 @@ static inline void *safe_realloc_mul_2op_(void *ptr, size_t size1, size_t size2)
 static inline void *safe_realloc_muladd2_(void *ptr, size_t size1, size_t size2, size_t size3)
 {
 	if(!size1 || (!size2 && !size3))
-		return realloc(ptr, 0); /* preserve POSIX realloc(ptr, 0) semantics */
+		return FLAC_REALLOC(ptr, 0); /* preserve POSIX FLAC_REALLOC(ptr, 0) semantics */
 	size2 += size3;
 	if(size2 < size3)
 		return 0;

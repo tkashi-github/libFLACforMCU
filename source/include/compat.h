@@ -115,7 +115,7 @@ extern int flac_fseeko(FLAC_FILE *fp, int32_t offset, int32_t whence);
 extern void *pvlibTCMMalloc( size_t xWantedSize );
 extern void vlibTCMPortFree( void *pv );
 extern size_t xlibSYSPortGetFreeHeapSize( void );
-#define FLAC__FREE(x) FlacSysFree((uintptr_t)(x), __FUNCTION__, __LINE__)
+#define FLAC_FREE(x) FlacSysFree((uintptr_t)(x), __FUNCTION__, __LINE__)
 #define FLAC_MALLOC(x) FlacSysMalloc((x), __FUNCTION__, __LINE__)
 #define FLAC_CALLOC(x,y) FlacSysCalloc((x),(y), __FUNCTION__, __LINE__)
 #define FLAC_REALLOC(x,y) FlacSysRealloc((x),(y), __FUNCTION__, __LINE__)
@@ -149,7 +149,7 @@ static inline void FlacSysFree(uintptr_t pv, const char pszFile[], uint32_t u32L
 static inline void *FlacSysCalloc(uint32_t i, uint32_t j, const char pszFunc[], uint32_t u32Line){
 	void *ptr = FlacSysMalloc(i*j, pszFunc, u32Line);
 	if(ptr != NULL){
-		memset(ptr, 0, i*j);
+		flac_memset(ptr, 0, i*j);
 	}else{
 		flac_printf("[%s (%d)] pvlibSYSMalloc NG (Free = %lu, Wanted = %lu)\r\n", pszFunc, u32Line, xlibSYSPortGetFreeHeapSize(), i*j);
 	}
@@ -159,7 +159,7 @@ static inline void *FlacSysCalloc(uint32_t i, uint32_t j, const char pszFunc[], 
 static inline void *FlacSysRealloc(void *ptrOld, size_t size, const char pszFunc[], uint32_t u32Line){
 	void *ptrNew = FlacSysMalloc(size, pszFunc, u32Line);
 	if(ptrNew != NULL){
-		memcpy(ptrNew, ptrOld, size);
+		flac_memcpy(ptrNew, ptrOld, size);
 		FlacSysFree((uintptr_t)ptrOld, pszFunc, u32Line);
 	}
 
@@ -178,7 +178,7 @@ static inline char *flac_strdup(const char szStr[]){
 	return pret;
 }
 
-static inline _Bool flac_memcpy(uintptr_t p1, uintptr_t p2, uint32_t u32ByteCnt)
+static inline _Bool flac_memcpy(void * p1, void * p2, uint32_t u32ByteCnt)
 {
 	/*-- var --*/
 	uint8_t *pu81 = (uint8_t *)p1;
@@ -197,7 +197,7 @@ static inline _Bool flac_memcpy(uintptr_t p1, uintptr_t p2, uint32_t u32ByteCnt)
 	return bret;
 }
 
-static inline _Bool flac_memset(uintptr_t p1, uint8_t val, uint32_t u32ByteCnt)
+static inline _Bool flac_memset(void * p1, uint8_t val, uint32_t u32ByteCnt)
 {
 	/*-- var --*/
 	uint8_t *pu81 = (uint8_t *)p1;

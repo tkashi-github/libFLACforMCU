@@ -51,7 +51,7 @@ typedef FLAC__bool (*FLAC__BitReaderReadCallback)(FLAC__byte buffer[], size_t *b
 FLAC__BitReader *FLAC__bitreader_new(void);
 void FLAC__bitreader_delete(FLAC__BitReader *br);
 FLAC__bool FLAC__bitreader_init(FLAC__BitReader *br, FLAC__BitReaderReadCallback rcb, void *cd);
-void FLAC__bitreader_free(FLAC__BitReader *br); /* does not 'free(br)' */
+void FLAC__bitreader_free(FLAC__BitReader *br); /* does not 'FLAC_FREE(br)' */
 FLAC__bool FLAC__bitreader_clear(FLAC__BitReader *br);
 
 /*

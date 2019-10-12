@@ -374,7 +374,7 @@ void FLAC__fixed_compute_residual(const FLAC__int32 data[], uint32_t data_len, u
 	{
 	case 0:
 		FLAC__ASSERT(sizeof(residual[0]) == sizeof(data[0]));
-		memcpy(residual, data, sizeof(residual[0]) * data_len);
+		flac_memcpy(residual, data, sizeof(residual[0]) * data_len);
 		break;
 	case 1:
 		for (i = 0; i < idata_len; i++)
@@ -405,7 +405,7 @@ void FLAC__fixed_restore_signal(const FLAC__int32 residual[], uint32_t data_len,
 	{
 	case 0:
 		FLAC__ASSERT(sizeof(residual[0]) == sizeof(data[0]));
-		memcpy(data, residual, sizeof(residual[0]) * data_len);
+		flac_memcpy(data, residual, sizeof(residual[0]) * data_len);
 		break;
 	case 1:
 		for (i = 0; i < idata_len; i++)

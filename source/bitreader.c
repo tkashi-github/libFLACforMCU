@@ -34,8 +34,6 @@
 #include <config.h>
 #endif
 
-#include <stdlib.h>
-#include <string.h>
 #include "include/bitmath.h"
 #include "include/bitreader.h"
 #include "include/crc.h"
@@ -232,10 +230,10 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 
 FLAC__BitReader *FLAC__bitreader_new(void)
 {
-	FLAC__BitReader *br = calloc(1, sizeof(FLAC__BitReader));
+	FLAC__BitReader *br = FLAC_CALLOC(1, sizeof(FLAC__BitReader));
 
-	/* calloc() implies:
-		memset(br, 0, sizeof(FLAC__BitReader));
+	/* FLAC_CALLOC() implies:
+		flac_memset(br, 0, sizeof(FLAC__BitReader));
 		br->buffer = 0;
 		br->capacity = 0;
 		br->words = br->bytes = 0;
@@ -251,7 +249,7 @@ void FLAC__bitreader_delete(FLAC__BitReader *br)
 	FLAC__ASSERT(0 != br);
 
 	FLAC__bitreader_free(br);
-	free(br);
+	FLAC_FREE(br);
 }
 
 /***********************************************************************
@@ -283,7 +281,7 @@ void FLAC__bitreader_free(FLAC__BitReader *br)
 	FLAC__ASSERT(0 != br);
 
 	if (0 != br->buffer)
-		free(br->buffer);
+		FLAC_FREE(br->buffer);
 	br->buffer = 0;
 	br->capacity = 0;
 	br->words = br->bytes = 0;

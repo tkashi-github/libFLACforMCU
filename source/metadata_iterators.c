@@ -348,7 +348,7 @@ FLAC_API const char *const FLAC__Metadata_SimpleIteratorStatusString[] = {
 
 FLAC_API FLAC__Metadata_SimpleIterator *FLAC__metadata_simple_iterator_new(void)
 {
-	FLAC__Metadata_SimpleIterator *iterator = calloc(1, sizeof(FLAC__Metadata_SimpleIterator));
+	FLAC__Metadata_SimpleIterator *iterator = FLAC_CALLOC(1, sizeof(FLAC__Metadata_SimpleIterator));
 
 	if (0 != iterator)
 	{
@@ -378,12 +378,12 @@ static void simple_iterator_free_guts_(FLAC__Metadata_SimpleIterator *iterator)
 	}
 	if (0 != iterator->filename)
 	{
-		free(iterator->filename);
+		FLAC_FREE(iterator->filename);
 		iterator->filename = 0;
 	}
 	if (0 != iterator->tempfile_path_prefix)
 	{
-		free(iterator->tempfile_path_prefix);
+		FLAC_FREE(iterator->tempfile_path_prefix);
 		iterator->tempfile_path_prefix = 0;
 	}
 }
@@ -393,7 +393,7 @@ FLAC_API void FLAC__metadata_simple_iterator_delete(FLAC__Metadata_SimpleIterato
 	FLAC__ASSERT(0 != iterator);
 
 	simple_iterator_free_guts_(iterator);
-	free(iterator);
+	FLAC_FREE(iterator);
 }
 
 FLAC_API FLAC__Metadata_SimpleIteratorStatus FLAC__metadata_simple_iterator_status(FLAC__Metadata_SimpleIterator *iterator)
@@ -980,7 +980,7 @@ FLAC_API const char *const FLAC__Metadata_ChainStatusString[] = {
 
 static FLAC__Metadata_Node *node_new_(void)
 {
-	return calloc(1, sizeof(FLAC__Metadata_Node));
+	return FLAC_CALLOC(1, sizeof(FLAC__Metadata_Node));
 }
 
 static void node_delete_(FLAC__Metadata_Node *node)
@@ -988,7 +988,7 @@ static void node_delete_(FLAC__Metadata_Node *node)
 	FLAC__ASSERT(0 != node);
 	if (0 != node->data)
 		FLAC__metadata_object_delete(node->data);
-	free(node);
+	FLAC_FREE(node);
 }
 
 static void chain_init_(FLAC__Metadata_Chain *chain)
@@ -1018,7 +1018,7 @@ static void chain_clear_(FLAC__Metadata_Chain *chain)
 	}
 
 	if (0 != chain->filename)
-		free(chain->filename);
+		FLAC_FREE(chain->filename);
 
 	chain_init_(chain);
 }
@@ -1602,7 +1602,7 @@ static FLAC__bool chain_rewrite_file_cb_(FLAC__Metadata_Chain *chain, FLAC__IOHa
 
 FLAC_API FLAC__Metadata_Chain *FLAC__metadata_chain_new(void)
 {
-	FLAC__Metadata_Chain *chain = calloc(1, sizeof(FLAC__Metadata_Chain));
+	FLAC__Metadata_Chain *chain = FLAC_CALLOC(1, sizeof(FLAC__Metadata_Chain));
 
 	if (0 != chain)
 		chain_init_(chain);
@@ -1616,7 +1616,7 @@ FLAC_API void FLAC__metadata_chain_delete(FLAC__Metadata_Chain *chain)
 
 	chain_clear_(chain);
 
-	free(chain);
+	FLAC_FREE(chain);
 }
 
 FLAC_API FLAC__Metadata_ChainStatus FLAC__metadata_chain_status(FLAC__Metadata_Chain *chain)
@@ -2014,9 +2014,9 @@ FLAC_API void FLAC__metadata_chain_sort_padding(FLAC__Metadata_Chain *chain)
 
 FLAC_API FLAC__Metadata_Iterator *FLAC__metadata_iterator_new(void)
 {
-	FLAC__Metadata_Iterator *iterator = calloc(1, sizeof(FLAC__Metadata_Iterator));
+	FLAC__Metadata_Iterator *iterator = FLAC_CALLOC(1, sizeof(FLAC__Metadata_Iterator));
 
-	/* calloc() implies:
+	/* FLAC_CALLOC() implies:
 		iterator->current = 0;
 		iterator->chain = 0;
 	*/
@@ -2028,7 +2028,7 @@ FLAC_API void FLAC__metadata_iterator_delete(FLAC__Metadata_Iterator *iterator)
 {
 	FLAC__ASSERT(0 != iterator);
 
-	free(iterator);
+	FLAC_FREE(iterator);
 }
 
 FLAC_API void FLAC__metadata_iterator_init(FLAC__Metadata_Iterator *iterator, FLAC__Metadata_Chain *chain)
@@ -2331,7 +2331,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_streaminfo_cb_(FLAC
 	block->channels = (uint32_t)((b[2] & 0x0e) >> 1) + 1;
 	block->bits_per_sample = ((((uint32_t)(b[2] & 0x01)) << 4) | (((uint32_t)(b[3] & 0xf0)) >> 4)) + 1;
 	block->total_samples = (((FLAC__uint64)(b[3] & 0x0f)) << 32) | unpack_uint64_(b + 4, 4);
-	memcpy(block->md5sum, b + 8, 16);
+	flac_memcpy(block->md5sum, b + 8, 16);
 
 	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
 }
@@ -2424,7 +2424,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_vorbis_comment_entr
 		max_length -= entry->length;
 
 	if (0 != entry->entry)
-		free(entry->entry);
+		FLAC_FREE(entry->entry);
 
 	if (entry->length == 0)
 	{
@@ -2474,7 +2474,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_vorbis_comment_cb_(
 	{
 		block->comments = 0;
 	}
-	else if (0 == (block->comments = calloc(block->num_comments, sizeof(FLAC__StreamMetadata_VorbisComment_Entry))))
+	else if (0 == (block->comments = FLAC_CALLOC(block->num_comments, sizeof(FLAC__StreamMetadata_VorbisComment_Entry))))
 	{
 		block->num_comments = 0;
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
@@ -2551,7 +2551,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_cuesheet_track_cb_(
 	{
 		track->indices = 0;
 	}
-	else if (0 == (track->indices = calloc(track->num_indices, sizeof(FLAC__StreamMetadata_CueSheet_Index))))
+	else if (0 == (track->indices = FLAC_CALLOC(track->num_indices, sizeof(FLAC__StreamMetadata_CueSheet_Index))))
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 
 	for (i = 0; i < track->num_indices; i++)
@@ -2613,7 +2613,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_cuesheet_cb_(FLAC__
 	{
 		block->tracks = 0;
 	}
-	else if (0 == (block->tracks = calloc(block->num_tracks, sizeof(FLAC__StreamMetadata_CueSheet_Track))))
+	else if (0 == (block->tracks = FLAC_CALLOC(block->num_tracks, sizeof(FLAC__StreamMetadata_CueSheet_Track))))
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 
 	for (i = 0; i < block->num_tracks; i++)
@@ -2641,7 +2641,7 @@ static FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_picture_cstr
 	*length = unpack_uint32_(buffer, length_len);
 
 	if (0 != *data)
-		free(*data);
+		FLAC_FREE(*data);
 
 	if (0 == (*data = safe_malloc_add_2op_(*length, /*+*/ 1)))
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
@@ -2823,7 +2823,7 @@ FLAC__bool write_metadata_block_data_streaminfo_cb_(FLAC__IOHandle handle, FLAC_
 	buffer[12] = ((block->sample_rate & 0x0f) << 4) | (channels1 << 1) | (bps1 >> 4);
 	buffer[13] = (FLAC__byte)(((bps1 & 0x0f) << 4) | ((block->total_samples >> 32) & 0x0f));
 	pack_uint32_((FLAC__uint32)block->total_samples, buffer + 14, 4);
-	memcpy(buffer + 18, block->md5sum, 16);
+	flac_memcpy(buffer + 18, block->md5sum, 16);
 
 	if (write_cb(buffer, 1, FLAC__STREAM_METADATA_STREAMINFO_LENGTH, handle) != FLAC__STREAM_METADATA_STREAMINFO_LENGTH)
 		return false;
@@ -2838,7 +2838,7 @@ FLAC__bool write_metadata_block_data_padding_cb_(FLAC__IOHandle handle, FLAC__IO
 
 	(void)block;
 
-	memset(buffer, 0, 1024);
+	flac_memset(buffer, 0, 1024);
 
 	for (i = 0; i < n / 1024; i++)
 		if (write_cb(buffer, 1, 1024, handle) != 1024)
@@ -2939,7 +2939,7 @@ FLAC__bool write_metadata_block_data_cuesheet_cb_(FLAC__IOHandle handle, FLAC__I
 
 	FLAC__ASSERT((FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN + FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN) % 8 == 0);
 	len = (FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN + FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN) / 8;
-	memset(buffer, 0, len);
+	flac_memset(buffer, 0, len);
 	if (block->is_cd)
 		buffer[0] |= 0x80;
 	if (write_cb(buffer, 1, len, handle) != len)
@@ -2974,7 +2974,7 @@ FLAC__bool write_metadata_block_data_cuesheet_cb_(FLAC__IOHandle handle, FLAC__I
 
 		FLAC__ASSERT((FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN) % 8 == 0);
 		len = (FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN) / 8;
-		memset(buffer, 0, len);
+		flac_memset(buffer, 0, len);
 		buffer[0] = (track->type << 7) | (track->pre_emphasis << 6);
 		if (write_cb(buffer, 1, len, handle) != len)
 			return false;
@@ -3003,7 +3003,7 @@ FLAC__bool write_metadata_block_data_cuesheet_cb_(FLAC__IOHandle handle, FLAC__I
 
 			FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN % 8 == 0);
 			len = FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN / 8;
-			memset(buffer, 0, len);
+			flac_memset(buffer, 0, len);
 			if (write_cb(buffer, 1, len, handle) != len)
 				return false;
 		}
@@ -3628,7 +3628,7 @@ void cleanup_tempfile_(FLAC_FILE **tempfile, char **tempfilename)
 	if (0 != *tempfilename)
 	{
 		(void)flac_unlink(*tempfilename);
-		free(*tempfilename);
+		FLAC_FREE(*tempfilename);
 		*tempfilename = 0;
 	}
 }

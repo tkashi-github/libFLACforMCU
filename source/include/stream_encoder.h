@@ -1124,13 +1124,13 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_total_samples_estimate(FLAC__Stream
  *  array of pointers to metadata blocks.  The array is non-const since
  *  the encoder may need to change the \a is_last flag inside them, and
  *  in some cases update seek point offsets.  Otherwise, the encoder will
- *  not modify or free the blocks.  It is up to the caller to free the
+ *  not modify or FLAC_FREE the blocks.  It is up to the caller to FLAC_FREE the
  *  metadata blocks after encoding finishes.
  *
  * \note
  * The encoder stores only copies of the pointers in the \a metadata array;
  * the metadata blocks themselves must survive at least until after
- * FLAC__stream_encoder_finish() returns.  Do not free the blocks until then.
+ * FLAC__stream_encoder_finish() returns.  Do not FLAC_FREE the blocks until then.
  *
  * \note
  * The STREAMINFO block is always written and no STREAMINFO block may
@@ -1165,7 +1165,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_total_samples_estimate(FLAC__Stream
  * \note
  * The encoder instance \b will modify the first \c SEEKTABLE block
  * as it transforms the template to a valid seektable while encoding,
- * but it is still up to the caller to free all metadata blocks after
+ * but it is still up to the caller to FLAC_FREE all metadata blocks after
  * encoding.
  *
  * \note

@@ -34,8 +34,6 @@
 #include <config.h>
 #endif
 
-#include <stdlib.h>
-#include <string.h>
 #include "include/bitwriter.h"
 #include "include/crc.h"
 #include "include/macros.h"
@@ -142,8 +140,8 @@ static
 
 FLAC__BitWriter *FLAC__bitwriter_new(void)
 {
-	FLAC__BitWriter *bw = calloc(1, sizeof(FLAC__BitWriter));
-	/* note that calloc() sets all members to 0 for us */
+	FLAC__BitWriter *bw = FLAC_CALLOC(1, sizeof(FLAC__BitWriter));
+	/* note that FLAC_CALLOC() sets all members to 0 for us */
 	return bw;
 }
 
@@ -152,7 +150,7 @@ void FLAC__bitwriter_delete(FLAC__BitWriter *bw)
 	FLAC__ASSERT(0 != bw);
 
 	FLAC__bitwriter_free(bw);
-	free(bw);
+	FLAC_FREE(bw);
 }
 
 /***********************************************************************
@@ -179,7 +177,7 @@ void FLAC__bitwriter_free(FLAC__BitWriter *bw)
 	FLAC__ASSERT(0 != bw);
 
 	if (0 != bw->buffer)
-		free(bw->buffer);
+		FLAC_FREE(bw->buffer);
 	bw->buffer = 0;
 	bw->capacity = 0;
 	bw->words = bw->bits = 0;
@@ -486,7 +484,7 @@ FLAC__bool FLAC__bitwriter_write_rice_signed_block(FLAC__BitWriter *bw, const FL
 
 		if (bw->bits && bw->bits + total_bits < FLAC__BITS_PER_WORD)
 		{ /* i.e. if the whole thing fits in the current bwword */
-			/* ^^^ if bw->bits is 0 then we may have filled the buffer and have no free bwword to work in */
+			/* ^^^ if bw->bits is 0 then we may have filled the buffer and have no FLAC_FREE bwword to work in */
 			bw->bits += total_bits;
 			uval |= mask1; /* set stop bit */
 			uval &= mask2; /* mask off unused top bits */

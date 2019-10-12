@@ -35,7 +35,7 @@
 
 #include "include/metadata.h"
 
-/* WATCHOUT: all malloc()ed data in the block is free()ed; this may not
+/* WATCHOUT: all malloc()ed data in the block is FLAC_FREE()ed; this may not
  * be a consistent state (e.g. PICTURE) or equivalent to the initial
  * state after FLAC__metadata_object_new()
  */

@@ -31,7 +31,7 @@
  */
 
 #include <stdlib.h> /* for qsort() */
-#include <string.h> /* for memset() */
+#include <string.h> /* for flac_memset() */
 #include "include/assert.h"
 #include "include/format.h"
 #include "include/alloc.h"
@@ -602,9 +602,9 @@ void FLAC__format_entropy_coding_method_partitioned_rice_contents_clear(FLAC__En
 	FLAC__ASSERT(0 != object);
 
 	if (0 != object->parameters)
-		free(object->parameters);
+		FLAC_FREE(object->parameters);
 	if (0 != object->raw_bits)
-		free(object->raw_bits);
+		FLAC_FREE(object->raw_bits);
 	FLAC__format_entropy_coding_method_partitioned_rice_contents_init(object);
 }
 
@@ -620,7 +620,7 @@ FLAC__bool FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_s
 			return false;
 		if (0 == (object->raw_bits = safe_realloc_(object->raw_bits, sizeof(uint32_t) * (1 << max_partition_order))))
 			return false;
-		memset(object->raw_bits, 0, sizeof(uint32_t) * (1 << max_partition_order));
+		flac_memset(object->raw_bits, 0, sizeof(uint32_t) * (1 << max_partition_order));
 		object->capacity_by_order = max_partition_order;
 	}
 

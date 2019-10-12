@@ -496,33 +496,33 @@ FLAC_API FLAC__StreamEncoder *FLAC__stream_encoder_new(void)
 
 	FLAC__ASSERT(sizeof(int) >= 4); /* we want to die right away if this is not true */
 
-	encoder = calloc(1, sizeof(FLAC__StreamEncoder));
+	encoder = FLAC_CALLOC(1, sizeof(FLAC__StreamEncoder));
 	if(encoder == 0) {
 		return 0;
 	}
 
-	encoder->protected_ = calloc(1, sizeof(FLAC__StreamEncoderProtected));
+	encoder->protected_ = FLAC_CALLOC(1, sizeof(FLAC__StreamEncoderProtected));
 	if(encoder->protected_ == 0) {
-		free(encoder);
+		FLAC_FREE(encoder);
 		return 0;
 	}
 
-	encoder->private_ = calloc(1, sizeof(FLAC__StreamEncoderPrivate));
+	encoder->private_ = FLAC_CALLOC(1, sizeof(FLAC__StreamEncoderPrivate));
 	if(encoder->private_ == 0) {
-		free(encoder->protected_);
-		free(encoder);
+		FLAC_FREE(encoder->protected_);
+		FLAC_FREE(encoder);
 		return 0;
 	}
 
 	encoder->private_->frame = FLAC__bitwriter_new();
 	if(encoder->private_->frame == 0) {
-		free(encoder->private_);
-		free(encoder->protected_);
-		free(encoder);
+		FLAC_FREE(encoder->private_);
+		FLAC_FREE(encoder->protected_);
+		FLAC_FREE(encoder);
 		return 0;
 	}
 
-	memset(&encoder->private_->file, 0, sizeof(FLAC_FILE));;
+	flac_memset(&encoder->private_->file, 0, sizeof(FLAC_FILE));;
 
 	set_defaults_(encoder);
 
@@ -591,9 +591,9 @@ FLAC_API void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder)
 		FLAC__format_entropy_coding_method_partitioned_rice_contents_clear(&encoder->private_->partitioned_rice_contents_extra[i]);
 
 	FLAC__bitwriter_delete(encoder->private_->frame);
-	free(encoder->private_);
-	free(encoder->protected_);
-	free(encoder);
+	FLAC_FREE(encoder->private_);
+	FLAC_FREE(encoder->protected_);
+	FLAC_FREE(encoder);
 }
 
 /***********************************************************************
@@ -1194,7 +1194,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	encoder->private_->streaminfo.data.stream_info.channels = encoder->protected_->channels;
 	encoder->private_->streaminfo.data.stream_info.bits_per_sample = encoder->protected_->bits_per_sample;
 	encoder->private_->streaminfo.data.stream_info.total_samples = encoder->protected_->total_samples_estimate; /* we will replace this later with the real total */
-	memset(encoder->private_->streaminfo.data.stream_info.md5sum, 0, 16); /* we don't know this yet; have to fill it in later */
+	flac_memset(encoder->private_->streaminfo.data.stream_info.md5sum, 0, 16); /* we don't know this yet; have to fill it in later */
 	if(encoder->protected_->do_md5)
 		FLAC__MD5Init(&encoder->private_->md5context);
 	if(!FLAC__add_metadata_block(&encoder->private_->streaminfo, encoder->private_->frame)) {
@@ -1888,9 +1888,9 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encod
 		num_blocks = 0;
 	if(0 == num_blocks)
 		metadata = 0;
-	/* realloc() does not do exactly what we want so... */
+	/* FLAC_REALLOC() does not do exactly what we want so... */
 	if(encoder->protected_->metadata) {
-		free(encoder->protected_->metadata);
+		FLAC_FREE(encoder->protected_->metadata);
 		encoder->protected_->metadata = 0;
 		encoder->protected_->num_metadata_blocks = 0;
 	}
@@ -1898,7 +1898,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encod
 		FLAC__StreamMetadata **m;
 		if(0 == (m = safe_malloc_mul_2op_p(sizeof(m[0]), /*times*/num_blocks)))
 			return false;
-		memcpy(m, metadata, sizeof(m[0]) * num_blocks);
+		flac_memcpy(m, metadata, sizeof(m[0]) * num_blocks);
 		encoder->protected_->metadata = m;
 		encoder->protected_->num_metadata_blocks = num_blocks;
 	}
@@ -2159,7 +2159,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, c
 			if (buffer[channel] == NULL) {
 				return false;
 			}
-			memcpy(&encoder->private_->integer_signal[channel][encoder->private_->current_sample_number], &buffer[channel][j], sizeof(buffer[channel][0]) * n);
+			flac_memcpy(&encoder->private_->integer_signal[channel][encoder->private_->current_sample_number], &buffer[channel][j], sizeof(buffer[channel][0]) * n);
 		}
 
 		if(encoder->protected_->do_mid_side_stereo) {
@@ -2343,30 +2343,30 @@ void free_(FLAC__StreamEncoder *encoder)
 
 	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->metadata) {
-		free(encoder->protected_->metadata);
+		FLAC_FREE(encoder->protected_->metadata);
 		encoder->protected_->metadata = 0;
 		encoder->protected_->num_metadata_blocks = 0;
 	}
 	for(i = 0; i < encoder->protected_->channels; i++) {
 		if(0 != encoder->private_->integer_signal_unaligned[i]) {
-			free(encoder->private_->integer_signal_unaligned[i]);
+			FLAC_FREE(encoder->private_->integer_signal_unaligned[i]);
 			encoder->private_->integer_signal_unaligned[i] = 0;
 		}
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 		if(0 != encoder->private_->real_signal_unaligned[i]) {
-			free(encoder->private_->real_signal_unaligned[i]);
+			FLAC_FREE(encoder->private_->real_signal_unaligned[i]);
 			encoder->private_->real_signal_unaligned[i] = 0;
 		}
 #endif
 	}
 	for(i = 0; i < 2; i++) {
 		if(0 != encoder->private_->integer_signal_mid_side_unaligned[i]) {
-			free(encoder->private_->integer_signal_mid_side_unaligned[i]);
+			FLAC_FREE(encoder->private_->integer_signal_mid_side_unaligned[i]);
 			encoder->private_->integer_signal_mid_side_unaligned[i] = 0;
 		}
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 		if(0 != encoder->private_->real_signal_mid_side_unaligned[i]) {
-			free(encoder->private_->real_signal_mid_side_unaligned[i]);
+			FLAC_FREE(encoder->private_->real_signal_mid_side_unaligned[i]);
 			encoder->private_->real_signal_mid_side_unaligned[i] = 0;
 		}
 #endif
@@ -2374,19 +2374,19 @@ void free_(FLAC__StreamEncoder *encoder)
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 	for(i = 0; i < encoder->protected_->num_apodizations; i++) {
 		if(0 != encoder->private_->window_unaligned[i]) {
-			free(encoder->private_->window_unaligned[i]);
+			FLAC_FREE(encoder->private_->window_unaligned[i]);
 			encoder->private_->window_unaligned[i] = 0;
 		}
 	}
 	if(0 != encoder->private_->windowed_signal_unaligned) {
-		free(encoder->private_->windowed_signal_unaligned);
+		FLAC_FREE(encoder->private_->windowed_signal_unaligned);
 		encoder->private_->windowed_signal_unaligned = 0;
 	}
 #endif
 	for(channel = 0; channel < encoder->protected_->channels; channel++) {
 		for(i = 0; i < 2; i++) {
 			if(0 != encoder->private_->residual_workspace_unaligned[channel][i]) {
-				free(encoder->private_->residual_workspace_unaligned[channel][i]);
+				FLAC_FREE(encoder->private_->residual_workspace_unaligned[channel][i]);
 				encoder->private_->residual_workspace_unaligned[channel][i] = 0;
 			}
 		}
@@ -2394,23 +2394,23 @@ void free_(FLAC__StreamEncoder *encoder)
 	for(channel = 0; channel < 2; channel++) {
 		for(i = 0; i < 2; i++) {
 			if(0 != encoder->private_->residual_workspace_mid_side_unaligned[channel][i]) {
-				free(encoder->private_->residual_workspace_mid_side_unaligned[channel][i]);
+				FLAC_FREE(encoder->private_->residual_workspace_mid_side_unaligned[channel][i]);
 				encoder->private_->residual_workspace_mid_side_unaligned[channel][i] = 0;
 			}
 		}
 	}
 	if(0 != encoder->private_->abs_residual_partition_sums_unaligned) {
-		free(encoder->private_->abs_residual_partition_sums_unaligned);
+		FLAC_FREE(encoder->private_->abs_residual_partition_sums_unaligned);
 		encoder->private_->abs_residual_partition_sums_unaligned = 0;
 	}
 	if(0 != encoder->private_->raw_bits_per_partition_unaligned) {
-		free(encoder->private_->raw_bits_per_partition_unaligned);
+		FLAC_FREE(encoder->private_->raw_bits_per_partition_unaligned);
 		encoder->private_->raw_bits_per_partition_unaligned = 0;
 	}
 	if(encoder->protected_->verify) {
 		for(i = 0; i < encoder->protected_->channels; i++) {
 			if(0 != encoder->private_->verify.input_fifo.data[i]) {
-				free(encoder->private_->verify.input_fifo.data[i]);
+				FLAC_FREE(encoder->private_->verify.input_fifo.data[i]);
 				encoder->private_->verify.input_fifo.data[i] = 0;
 			}
 		}
@@ -2441,7 +2441,7 @@ FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, uint32_t new_blocksize)
 
 	for(i = 0; ok && i < encoder->protected_->channels; i++) {
 		ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize+4+OVERREAD_, &encoder->private_->integer_signal_unaligned[i], &encoder->private_->integer_signal[i]);
-		memset(encoder->private_->integer_signal[i], 0, sizeof(FLAC__int32)*4);
+		flac_memset(encoder->private_->integer_signal[i], 0, sizeof(FLAC__int32)*4);
 		encoder->private_->integer_signal[i] += 4;
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 #if 0 /* @@@ currently unused */
@@ -2452,7 +2452,7 @@ FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, uint32_t new_blocksize)
 	}
 	for(i = 0; ok && i < 2; i++) {
 		ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize+4+OVERREAD_, &encoder->private_->integer_signal_mid_side_unaligned[i], &encoder->private_->integer_signal_mid_side[i]);
-		memset(encoder->private_->integer_signal_mid_side[i], 0, sizeof(FLAC__int32)*4);
+		flac_memset(encoder->private_->integer_signal_mid_side[i], 0, sizeof(FLAC__int32)*4);
 		encoder->private_->integer_signal_mid_side[i] += 4;
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 #if 0 /* @@@ currently unused */
@@ -2919,7 +2919,7 @@ void update_ogg_metadata_(FLAC__StreamEncoder *encoder)
 			simple_ogg_page__clear(&page);
 			return;
 		}
-		memcpy(page.body + md5_offset, metadata->data.stream_info.md5sum, 16);
+		flac_memcpy(page.body + md5_offset, metadata->data.stream_info.md5sum, 16);
 	}
 
 	/*
@@ -2951,7 +2951,7 @@ void update_ogg_metadata_(FLAC__StreamEncoder *encoder)
 		b[2] = (FLAC__byte)((samples >> 16) & 0xFF);
 		b[3] = (FLAC__byte)((samples >> 8) & 0xFF);
 		b[4] = (FLAC__byte)(samples & 0xFF);
-		memcpy(page.body + total_samples_byte_offset, b, 5);
+		flac_memcpy(page.body + total_samples_byte_offset, b, 5);
 	}
 
 	/*
@@ -2977,7 +2977,7 @@ void update_ogg_metadata_(FLAC__StreamEncoder *encoder)
 		b[3] = (FLAC__byte)((max_framesize >> 16) & 0xFF);
 		b[4] = (FLAC__byte)((max_framesize >> 8) & 0xFF);
 		b[5] = (FLAC__byte)(max_framesize & 0xFF);
-		memcpy(page.body + min_framesize_offset, b, 6);
+		flac_memcpy(page.body + min_framesize_offset, b, 6);
 	}
 	if(!simple_ogg_page__set_at(encoder, encoder->protected_->streaminfo_offset, &page, encoder->private_->seek_callback, encoder->private_->write_callback, encoder->private_->client_data)) {
 		simple_ogg_page__clear(&page);
@@ -3032,7 +3032,7 @@ void update_ogg_metadata_(FLAC__StreamEncoder *encoder)
 			x = encoder->private_->seek_table->points[i].frame_samples;
 			b[17] = (FLAC__byte)x; x >>= 8;
 			b[16] = (FLAC__byte)x; x >>= 8;
-			memcpy(p, b, 18);
+			flac_memcpy(p, b, 18);
 		}
 
 		if(!simple_ogg_page__set_at(encoder, encoder->protected_->seektable_offset, &page, encoder->private_->seek_callback, encoder->private_->write_callback, encoder->private_->client_data)) {
@@ -3812,7 +3812,7 @@ uint32_t evaluate_lpc_subframe_(
 	subframe->data.lpc.order = order;
 	subframe->data.lpc.qlp_coeff_precision = qlp_coeff_precision;
 	subframe->data.lpc.quantization_level = quantization;
-	memcpy(subframe->data.lpc.qlp_coeff, qlp_coeff, sizeof(FLAC__int32)*FLAC__MAX_LPC_ORDER);
+	flac_memcpy(subframe->data.lpc.qlp_coeff, qlp_coeff, sizeof(FLAC__int32)*FLAC__MAX_LPC_ORDER);
 	for(i = 0; i < order; i++)
 		subframe->data.lpc.warmup[i] = signal[i];
 
@@ -3929,9 +3929,9 @@ uint32_t find_best_partition_order_(
 
 		/* save best parameters and raw_bits */
 		FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(prc, flac_max(6u, best_partition_order));
-		memcpy(prc->parameters, private_->partitioned_rice_contents_extra[best_parameters_index].parameters, sizeof(uint32_t)*(1<<(best_partition_order)));
+		flac_memcpy(prc->parameters, private_->partitioned_rice_contents_extra[best_parameters_index].parameters, sizeof(uint32_t)*(1<<(best_partition_order)));
 		if(do_escape_coding)
-			memcpy(prc->raw_bits, private_->partitioned_rice_contents_extra[best_parameters_index].raw_bits, sizeof(uint32_t)*(1<<(best_partition_order)));
+			flac_memcpy(prc->raw_bits, private_->partitioned_rice_contents_extra[best_parameters_index].raw_bits, sizeof(uint32_t)*(1<<(best_partition_order)));
 		/*
 		 * Now need to check if the type should be changed to
 		 * FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2 based on the
@@ -4316,7 +4316,7 @@ void append_to_verify_fifo_(verify_input_fifo *fifo, const FLAC__int32 * const i
 	uint32_t channel;
 
 	for(channel = 0; channel < channels; channel++)
-		memcpy(&fifo->data[channel][fifo->tail], &input[channel][input_offset], sizeof(FLAC__int32) * wide_samples);
+		flac_memcpy(&fifo->data[channel][fifo->tail], &input[channel][input_offset], sizeof(FLAC__int32) * wide_samples);
 
 	fifo->tail += wide_samples;
 
@@ -4349,7 +4349,7 @@ FLAC__StreamDecoderReadStatus verify_read_callback_(const FLAC__StreamDecoder *d
 	if(encoder->private_->verify.needs_magic_hack) {
 		FLAC__ASSERT(*bytes >= FLAC__STREAM_SYNC_LENGTH);
 		*bytes = FLAC__STREAM_SYNC_LENGTH;
-		memcpy(buffer, FLAC__STREAM_SYNC_STRING, *bytes);
+		flac_memcpy(buffer, FLAC__STREAM_SYNC_STRING, *bytes);
 		encoder->private_->verify.needs_magic_hack = false;
 	}
 	else {
@@ -4363,7 +4363,7 @@ FLAC__StreamDecoderReadStatus verify_read_callback_(const FLAC__StreamDecoder *d
 		}
 		else if(encoded_bytes < *bytes)
 			*bytes = encoded_bytes;
-		memcpy(buffer, encoder->private_->verify.output.data, *bytes);
+		flac_memcpy(buffer, encoder->private_->verify.output.data, *bytes);
 		encoder->private_->verify.output.data += *bytes;
 		encoder->private_->verify.output.bytes -= *bytes;
 	}
