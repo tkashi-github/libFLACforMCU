@@ -233,7 +233,7 @@ FLAC__BitReader *FLAC__bitreader_new(void)
 	FLAC__BitReader *br = FLAC_CALLOC(1, sizeof(FLAC__BitReader));
 
 	/* FLAC_CALLOC() implies:
-		flac_memset(br, 0, sizeof(FLAC__BitReader));
+		memset(br, 0, sizeof(FLAC__BitReader));
 		br->buffer = 0;
 		br->capacity = 0;
 		br->words = br->bytes = 0;

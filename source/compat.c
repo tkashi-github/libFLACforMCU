@@ -193,3 +193,10 @@ int flac_fseeko(FLAC_FILE *fp, int32_t offset, int32_t whence)
 #endif
 	return 0;
 }
+
+void flac_fclose(FLAC_FILE* fp)
+{
+#ifndef BUILD_TEST
+	f_close(fp);
+#endif
+}

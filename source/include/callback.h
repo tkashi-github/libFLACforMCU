@@ -65,9 +65,9 @@
  *  opaque structure for a data source.
  *
  *  The callback function prototypes are similar (but not identical) to the
- *  stdio functions fread, fwrite, fseek, ftell, feof, and fclose.  If you use
+ *  stdio functions fread, fwrite, fseek, ftell, feof, and flac_fclose.  If you use
  *  stdio streams to implement the callbacks, you can pass fread, fwrite, and
- *  fclose anywhere a FLAC__IOCallback_Read, FLAC__IOCallback_Write, or
+ *  flac_fclose anywhere a FLAC__IOCallback_Read, FLAC__IOCallback_Write, or
  *  FLAC__IOCallback_Close is required, and a FLAC_FILE* anywhere a FLAC__IOHandle
  *  is required.  \warning You generally CANNOT directly use fseek or ftell
  *  for FLAC__IOCallback_Seek or FLAC__IOCallback_Tell since on most systems
@@ -150,7 +150,7 @@ typedef FLAC__int64 (*FLAC__IOCallback_Tell) (FLAC__IOHandle handle);
 typedef int (*FLAC__IOCallback_Eof) (FLAC__IOHandle handle);
 
 /** Signature for the close callback.
- *  The signature and semantics match POSIX fclose() implementations
+ *  The signature and semantics match POSIX flac_fclose() implementations
  *  and can generally be used interchangeably.
  *
  * \param  handle   The handle to the data source.

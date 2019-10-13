@@ -620,7 +620,7 @@ FLAC__bool FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_s
 			return false;
 		if (0 == (object->raw_bits = safe_realloc_(object->raw_bits, sizeof(uint32_t) * (1 << max_partition_order))))
 			return false;
-		flac_memset(object->raw_bits, 0, sizeof(uint32_t) * (1 << max_partition_order));
+		memset(object->raw_bits, 0, sizeof(uint32_t) * (1 << max_partition_order));
 		object->capacity_by_order = max_partition_order;
 	}
 

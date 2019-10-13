@@ -38,7 +38,7 @@
 void FLAC__cpu_info (FLAC__CPUInfo *info)
 {
 #ifndef BUILD_TEST
-	flac_memset(info, 0, sizeof(*info));
+	memset(info, 0, sizeof(*info));
 
 #if defiend(FLAC_PORT_CPUINFO_TYPE_CM7)
 	info->type = FLAC__CPUINFO_TYPE_CM7;

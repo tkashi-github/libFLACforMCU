@@ -183,11 +183,11 @@ static void FLAC__MD5Update(FLAC__MD5Context *ctx, FLAC__byte const *buf, uint32
 
 	t = 64 - (t & 0x3f);	/* Space available in ctx->in (at least 1) */
 	if (t > len) {
-		flac_memcpy((FLAC__byte *)ctx->in + 64 - t, buf, len);
+		memcpy((FLAC__byte *)ctx->in + 64 - t, buf, len);
 		return;
 	}
 	/* First chunk is an odd size */
-	flac_memcpy((FLAC__byte *)ctx->in + 64 - t, buf, t);
+	memcpy((FLAC__byte *)ctx->in + 64 - t, buf, t);
 	byteSwapX16(ctx->in);
 	FLAC__MD5Transform(ctx->buf, ctx->in);
 	buf += t;
@@ -195,7 +195,7 @@ static void FLAC__MD5Update(FLAC__MD5Context *ctx, FLAC__byte const *buf, uint32
 
 	/* Process data in 64-byte chunks */
 	while (len >= 64) {
-		flac_memcpy(ctx->in, buf, 64);
+		memcpy(ctx->in, buf, 64);
 		byteSwapX16(ctx->in);
 		FLAC__MD5Transform(ctx->buf, ctx->in);
 		buf += 64;
@@ -203,7 +203,7 @@ static void FLAC__MD5Update(FLAC__MD5Context *ctx, FLAC__byte const *buf, uint32
 	}
 
 	/* Handle any remaining bytes of data. */
-	flac_memcpy(ctx->in, buf, len);
+	memcpy(ctx->in, buf, len);
 }
 
 /*
@@ -240,13 +240,13 @@ void FLAC__MD5Final(FLAC__byte digest[16], FLAC__MD5Context *ctx)
 	count = 56 - 1 - count;
 
 	if (count < 0) {	/* Padding forces an extra block */
-		flac_memset(p, 0, count + 8);
+		memset(p, 0, count + 8);
 		byteSwapX16(ctx->in);
 		FLAC__MD5Transform(ctx->buf, ctx->in);
 		p = (FLAC__byte *)ctx->in;
 		count = 56;
 	}
-	flac_memset(p, 0, count);
+	memset(p, 0, count);
 	byteSwap(ctx->in, 14);
 
 	/* Append length in bits and transform */
@@ -255,13 +255,13 @@ void FLAC__MD5Final(FLAC__byte digest[16], FLAC__MD5Context *ctx)
 	FLAC__MD5Transform(ctx->buf, ctx->in);
 
 	byteSwap(ctx->buf, 4);
-	flac_memcpy(digest, ctx->buf, 16);
+	memcpy(digest, ctx->buf, 16);
 	if (0 != ctx->internal_buf.p8) {
 		FLAC_FREE(ctx->internal_buf.p8);
 		ctx->internal_buf.p8 = 0;
 		ctx->capacity = 0;
 	}
-	flac_memset(ctx, 0, sizeof(*ctx));	/* In case it's sensitive */
+	memset(ctx, 0, sizeof(*ctx));	/* In case it's sensitive */
 }
 
 /*
