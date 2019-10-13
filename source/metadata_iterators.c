@@ -3554,7 +3554,7 @@ FLAC__bool open_tempfile_(const char *filename, const char *tempfile_path_prefix
 	}
 	else
 	{
-		const char *p = strrchr(filename, '/');
+		const char *p = flac_strrchr(filename, '/');
 		uint32_t dest_len;
 		if (0 == p)
 			p = filename;
@@ -3571,7 +3571,7 @@ FLAC__bool open_tempfile_(const char *filename, const char *tempfile_path_prefix
 		local_snprintf(*tempfilename, dest_len, "%s/%s%s", tempfile_path_prefix, p, tempfile_suffix);
 	}
 
-	if (false == flac_fopen(tempfile, *tempfilename, enFlacFopenModeWrite))
+	if (false == flac_fopen(*tempfile, *tempfilename, enFlacFopenModeWrite))
 	{
 		*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ERROR_OPENING_FILE;
 		return false;

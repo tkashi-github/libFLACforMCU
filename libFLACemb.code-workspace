@@ -17,5 +17,9 @@
 			"BUILD_TEST",
 			"NDEBUG"
 		],
+		"files.associations": {
+			"alloc.h": "c",
+			"stream_decoder.h": "c"
+		},
 	}
 }

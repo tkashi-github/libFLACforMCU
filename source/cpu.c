@@ -30,20 +30,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+
 
 #include "include/cpu.h"
 #include "include/compat.h"
 
 void FLAC__cpu_info (FLAC__CPUInfo *info)
 {
+#ifndef BUILD_TEST
 	flac_memset(info, 0, sizeof(*info));
 
 #if defiend(FLAC_PORT_CPUINFO_TYPE_CM7)
 	info->type = FLAC__CPUINFO_TYPE_CM7;
 #else
-#error
+	#error "Unkown CPU"
+#endif
 #endif
 }

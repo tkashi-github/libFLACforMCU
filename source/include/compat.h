@@ -65,18 +65,18 @@ extern "C" {
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <unistd.h>
-
-#define FLAC__off_t off_t
-#define FLAC__U64L(x) x##ULL
 #include <strings.h>
 #include <sys/stat.h>
+#include <unistd.h>
+#include <utime.h>
+#include <stdarg.h>
+#define FLAC__off_t off_t
+#define FLAC__U64L(x) x##ULL
 
 #define FLAC__STRCASECMP strcasecmp
 #define FLAC__STRNCASECMP strncasecmp
 
 #define flac_restrict
-
 #define flac_stat_s stat /* stat struct */
 
 
@@ -87,9 +87,9 @@ extern "C" {
 #define M_PI 3.14159265358979323846
 #endif
 
+#define FLAC__HAS_OGG 0
 
 
-#include <stdarg.h>
 
 
 #if defined(USE_FAT_FS)
@@ -362,6 +362,29 @@ static inline int32_t flac_strcmp(const char szStr1[], const char szStr2[])
 			return 0;
 		}
 	}
+}
+
+
+static inline const char *flac_strrchr(const char szStr[], char c)
+{
+	if(szStr == NULL)
+	{
+		return NULL;
+	}
+
+	uint32_t i=0;
+	const char *pret = NULL;
+
+	while(szStr[i] != '\0')
+	{
+		if(szStr[i] == c)
+		{
+			pret = &szStr[i];
+		}
+		i++;
+	}
+
+	return pret;
 }
 
 static inline char *safe_strncat(char *dest, const char *src, size_t dest_size)

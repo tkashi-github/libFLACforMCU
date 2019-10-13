@@ -39,7 +39,7 @@
 #include "include/compat.h"
 #include "include/assert.h"
 #include "include/alloc.h"
-#include "protected/stream_decoder.h"
+#include "include/stream_decoder.h"
 #include "include/bitreader.h"
 #include "include/bitmath.h"
 #include "include/cpu.h"
@@ -567,7 +567,7 @@ static FLAC__StreamDecoderInitStatus init_file_internal_(
 	void *client_data,
 	FLAC__bool is_ogg)
 {
-	FLAC_FILE *file;
+	FLAC_FILE *file = FLAC_MALLOC(sizeof(FLAC_FILE));
 
 	FLAC__ASSERT(0 != decoder);
 
@@ -582,8 +582,10 @@ static FLAC__StreamDecoderInitStatus init_file_internal_(
 	if (0 == write_callback || 0 == error_callback)
 		return decoder->protected_->initstate = FLAC__STREAM_DECODER_INIT_STATUS_INVALID_CALLBACKS;
 
-	file = filename ? flac_fopen(filename, "rb") : stdin;
-
+	if(false == flac_fopen(file, filename, enFlacFopenModeRead))
+	{
+		return FLAC__STREAM_DECODER_INIT_STATUS_ERROR_OPENING_FILE;
+	}
 	if (0 == file)
 		return FLAC__STREAM_DECODER_INIT_STATUS_ERROR_OPENING_FILE;
 

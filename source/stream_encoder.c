@@ -53,8 +53,6 @@
 #include "include/stream_encoder_framing.h"
 #include "include/window.h"
 #include "include/alloc.h"
-#include "include/private.h"
-
 
 /* Exact Rice codeword length calculation is off by default.  The simple
  * (and fast) estimation (of how many bits a residual value will be
@@ -1395,7 +1393,7 @@ static FLAC__StreamEncoderInitStatus init_file_internal_(
 	FLAC__bool is_ogg
 )
 {
-	FLAC_FILE file;
+	FLAC_FILE *file = FLAC_MALLOC(sizeof(FLAC_FILE));
 
 	FLAC__ASSERT(0 != encoder);
 
@@ -1407,7 +1405,7 @@ static FLAC__StreamEncoderInitStatus init_file_internal_(
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return FLAC__STREAM_ENCODER_INIT_STATUS_ALREADY_INITIALIZED;
 
-	if(false == flac_fopen(&file, filename, enFlacFopenModeOpenAdd))
+	if(false == flac_fopen(file, filename, enFlacFopenModeOpenAdd))
 	{
 		encoder->protected_->state = FLAC__STREAM_ENCODER_IO_ERROR;
 		return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;

@@ -39,6 +39,7 @@
 #include "include/macros.h"
 
 /* PACKAGE_VERSION should come from configure */
+#define PACKAGE_VERSION "1.3.3"
 FLAC_API const char *FLAC__VERSION_STRING = PACKAGE_VERSION;
 
 FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC " PACKAGE_VERSION " 20190804";

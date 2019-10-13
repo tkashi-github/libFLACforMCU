@@ -44,11 +44,12 @@
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 
+#if 0
 static inline long int lround(double x)
 {
 	return (long)(x + __builtin_copysign(0.5, x));
 }
-
+#endif
 void FLAC__lpc_window_data(const FLAC__int32 in[], const FLAC__real window[], FLAC__real out[], uint32_t data_len)
 {
 	uint32_t i;
