@@ -3471,10 +3471,10 @@ FLAC__bool copy_remaining_bytes_from_file_(FLAC_FILE *file, FLAC_FILE *tempfile,
 	FLAC__byte buffer[8192];
 	uint32_t n;
 
-	while (!feof(file))
+	while (!flac_feof(file))
 	{
 		n = flac_fread(buffer, 1, sizeof(buffer), file);
-		if (n == 0 && !feof(file))
+		if (n == 0 && !flac_feof(file))
 		{
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
 			return false;

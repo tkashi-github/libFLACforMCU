@@ -128,7 +128,22 @@ extern uint32_t flac_fread(void *buf, uint32_t size, uint32_t n, FLAC_FILE *fp);
 extern void flac_fclose(FLAC_FILE* fp);
 extern int flac_chmod(const char szFilePath[], int mode);
 extern int flac_fseeko(FLAC_FILE *fp, int32_t offset, int32_t whence);
-
+static inline int flac_feof(FLAC_FILE *fp)
+{
+#ifndef BUILD_TEST
+	return f_eof(fp);
+#else
+	return 0;
+#endif
+}
+static inline int flac_ferror(FLAC_FILE *fp)
+{
+#ifndef BUILD_TEST
+	return f_error(fp);
+#else
+	return 0;
+#endif
+}
 
 
 #ifndef BUILD_TEST
@@ -212,7 +227,7 @@ static inline char *safe_strncat(char *dest, const char *src, size_t dest_size)
 	if (dest_size < 1)
 		return dest;
 
-	ret = flac_strncat(dest, src, dest_size - strlen (dest));
+	ret = strncat(dest, src, dest_size - strlen (dest));
 	dest [dest_size - 1] = 0;
 
 	return ret;

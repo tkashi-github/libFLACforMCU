@@ -363,7 +363,7 @@ typedef struct FLAC__StreamEncoderPrivate {
 	FLAC__StreamEncoderProgressCallback progress_callback;
 	void *client_data;
 	uint32_t first_seekpoint_to_check;
-	FLAC_FILE file;                            /* only used when encoding to a file */
+	FLAC_FILE *file;                            /* only used when encoding to a file */
 	FLAC__uint64 bytes_written;
 	FLAC__uint64 samples_written;
 	uint32_t frames_written;
@@ -520,7 +520,6 @@ FLAC_API FLAC__StreamEncoder *FLAC__stream_encoder_new(void)
 		return 0;
 	}
 
-	memset(&encoder->private_->file, 0, sizeof(FLAC_FILE));;
 
 	set_defaults_(encoder);
 
@@ -1333,7 +1332,7 @@ static FLAC__StreamEncoderInitStatus init_FILE_internal_(
 		return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 	}
 
-	encoder->private_->file = *file;
+	encoder->private_->file = file;
 
 	encoder->private_->progress_callback = progress_callback;
 	encoder->private_->bytes_written = 0;
@@ -4430,9 +4429,9 @@ FLAC__StreamEncoderReadStatus file_read_callback_(const FLAC__StreamEncoder *enc
 
 	*bytes = flac_fread(buffer, 1, *bytes, encoder->private_->file);
 	if (*bytes == 0) {
-		if (feof(encoder->private_->file))
+		if (flac_feof(encoder->private_->file))
 			return FLAC__STREAM_ENCODER_READ_STATUS_END_OF_STREAM;
-		else if (ferror(encoder->private_->file))
+		else if (flac_ferror(encoder->private_->file))
 			return FLAC__STREAM_ENCODER_READ_STATUS_ABORT;
 	}
 	return FLAC__STREAM_ENCODER_READ_STATUS_CONTINUE;
